@@ -34,7 +34,7 @@ namespace
 
 					RETURN_IF_FAILED(g_gdi_interop->CreateFontFromLOGFONT(&lf, &font));
 					RETURN_IF_FAILED(font->GetFontFamily(&font_family));
-					const std::wstring name = get_family_name(font_family);
+					const std::wstring name = get_family_name(font_family.get());
 
 					j["Name"] = from_wide(name);
 					j["Weight"] = std::to_underlying(font->GetWeight());
@@ -45,7 +45,7 @@ namespace
 
 			if FAILED(hr)
 			{
-				j["Name"] = from_wide(s_default);
+				j["Name"] = from_wide(Component::default_font_name);
 				j["Weight"] = lf.lfWeight;
 				j["Style"] = lf.lfItalic != 0 ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
 			}
@@ -54,7 +54,7 @@ namespace
 		}
 
 	private:
-		std::wstring get_family_name(const wil::com_ptr_t<IDWriteFontFamily>& font_family)
+		std::wstring get_family_name(IDWriteFontFamily* font_family)
 		{
 			wil::com_ptr_t<IDWriteLocalizedStrings> family_names;
 			if SUCCEEDED(font_family->GetFamilyNames(&family_names))
@@ -65,7 +65,7 @@ namespace
 					return name.data();
 				}
 			}
-			return s_default.data();
+			return Component::default_font_name.data();
 		}
 
 		void init()
@@ -81,7 +81,7 @@ namespace
 			for (const uint32_t i : std::views::iota(0U, family_count))
 			{
 				if FAILED(font_collection->GetFontFamily(i, &font_family)) continue;
-				const std::wstring name = get_family_name(font_family);
+				const std::wstring name = get_family_name(font_family.get());
 				m_names.emplace_back(name);
 			}
 

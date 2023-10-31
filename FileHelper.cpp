@@ -112,8 +112,7 @@ uint32_t FileHelper::guess_codepage()
 
 uint32_t FileHelper::guess_codepage(wil::zstring_view content)
 {
-	int size = to_int(content.length());
-	if (size == 0) return 0;
+	if (content.empty()) return 0;
 
 	auto lang = wil::CoCreateInstanceNoThrow<IMultiLanguage2>(CLSID_CMultiLanguage);
 	if (!lang) return 0;
@@ -121,6 +120,7 @@ uint32_t FileHelper::guess_codepage(wil::zstring_view content)
 	auto src = const_cast<char*>(content.data());
 	static constexpr int max_encodings = 1;
 	int encoding_count = max_encodings;
+	int size = to_int(content.length());
 	std::array<DetectEncodingInfo, max_encodings> encodings{};
 	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count)) return 0;
 
