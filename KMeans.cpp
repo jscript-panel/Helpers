@@ -138,22 +138,24 @@ namespace KMeans
 
 	HRESULT GetColourCounters(IWICBitmap* bitmap, ColourCounters& colour_counters)
 	{
-		const WICRect rect(0, 0, 200, 200);
-		uint32_t size{};
+		static constexpr int colours_length = 200 * 200;
+		static constexpr uint32_t size = 200U;
+		static const WICRect rect(0, 0, 200, 200);
+
+		uint32_t data_size{};
 		uint8_t* data{};
 		wil::com_ptr_t<IWICBitmapScaler> scaler;
 		wil::com_ptr_t<IWICBitmap> copy;
 		wil::com_ptr_t<IWICBitmapLock> lock;
 
 		RETURN_IF_FAILED(g_imaging_factory->CreateBitmapScaler(&scaler));
-		RETURN_IF_FAILED(scaler->Initialize(bitmap, rect.Width, rect.Height, WICBitmapInterpolationModeFant));
+		RETURN_IF_FAILED(scaler->Initialize(bitmap, size, size, WICBitmapInterpolationModeFant));
 		RETURN_IF_FAILED(g_imaging_factory->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &copy));
 		RETURN_IF_FAILED(copy->Lock(&rect, WICBitmapLockWrite, &lock));
-		RETURN_IF_FAILED(lock->GetDataPointer(&size, &data));
+		RETURN_IF_FAILED(lock->GetDataPointer(&data_size, &data));
 		RETURN_HR_IF_NULL(E_POINTER, data);
 
 		auto colours = reinterpret_cast<const uint32_t*>(data);
-		const int colours_length = rect.Width * rect.Height;
 
 		for (const int i : std::views::iota(0, colours_length))
 		{
