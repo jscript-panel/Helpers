@@ -19,11 +19,16 @@ void destroy_resvg_font_options()
 }
 #endif
 
-HRESULT ImageHelpers::data_to_bitmap(const uint8_t* data, size_t bytes, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT ImageHelpers::album_art_data_to_bitmap(const AlbumArt::Data& data, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
-	if SUCCEEDED(libwebp_data_to_bitmap(data, bytes, bitmap)) return S_OK;
+	RETURN_HR_IF(E_FAIL, data.is_empty());
 
-	auto str = SHCreateMemStream(data, to_uint(bytes));
+	auto ptr = static_cast<const uint8_t*>(data->data());
+	const size_t data_size = data->size();
+
+	if SUCCEEDED(libwebp_data_to_bitmap(ptr, data_size, bitmap)) return S_OK;
+
+	auto str = SHCreateMemStream(ptr, to_uint(data_size));
 	RETURN_HR_IF_NULL(E_FAIL, str);
 
 	wil::com_ptr_t<IStream> stream;
@@ -46,24 +51,12 @@ HRESULT ImageHelpers::istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitm
 	return S_OK;
 }
 
-HRESULT ImageHelpers::istream_to_image_data(IStream* stream, std::vector<uint8_t>& image_data)
-{
-	STATSTG sts;
-	RETURN_IF_FAILED(stream->Stat(&sts, STATFLAG_DEFAULT));
-
-	const DWORD bytes = sts.cbSize.LowPart;
-	image_data.resize(bytes);
-	ULONG bytes_read{};
-	RETURN_IF_FAILED(stream->Read(image_data.data(), bytes, &bytes_read));
-	return S_OK;
-}
-
-HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t bytes, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t data_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
 	WebPBitstreamFeatures bs;
-	if (WebPGetFeatures(data, bytes, &bs) == VP8_STATUS_OK && !bs.has_animation)
+	if (WebPGetFeatures(data, data_size, &bs) == VP8_STATUS_OK && !bs.has_animation)
 	{
-		auto webp = WebPDecodeBGRA(data, bytes, &bs.width, &bs.height);
+		auto webp = WebPDecodeBGRA(data, data_size, &bs.width, &bs.height);
 		if (webp)
 		{
 			const auto width = to_uint(bs.width);
@@ -80,26 +73,58 @@ HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t bytes, 
 
 HRESULT ImageHelpers::libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
-	std::vector<uint8_t> image_data;
-	RETURN_IF_FAILED(istream_to_image_data(stream, image_data));
-	RETURN_IF_FAILED(libwebp_data_to_bitmap(image_data.data(), image_data.size(), bitmap));
+	auto data = AlbumArt::istream_to_data(stream);
+	RETURN_HR_IF(E_FAIL, data.is_empty());
+	RETURN_IF_FAILED(libwebp_data_to_bitmap(static_cast<const uint8_t*>(data->data()), data->size(), bitmap));
+	return S_OK;
+}
+
+HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitmap)
+{
+	if (max_size == 0U) return S_OK;
+
+	uint32_t old_width{}, old_height{};
+	RETURN_IF_FAILED(bitmap->GetSize(&old_width, &old_height));
+	if (old_width <= max_size && old_height <= max_size) return S_OK;
+	
+	if (old_width == old_height)
+	{
+		return resize(max_size, max_size, bitmap);
+	}
+
+	const double dmax = static_cast<double>(max_size);
+	const double dw = static_cast<double>(old_width);
+	const double dh = static_cast<double>(old_height);
+	const double s = std::min(dmax / dw, dmax / dh);
+	const uint32_t new_width = to_uint(dw * s);
+	const uint32_t new_height = to_uint(dh * s);
+
+	return resize(new_width, new_height, bitmap);
+}
+
+HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>& bitmap)
+{
+	wil::com_ptr_t<IWICBitmapScaler> scaler;
+	RETURN_IF_FAILED(g_imaging_factory->CreateBitmapScaler(&scaler));
+	RETURN_IF_FAILED(scaler->Initialize(bitmap.get(), width, height, WICBitmapInterpolationModeFant));
+	RETURN_IF_FAILED(g_imaging_factory->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &bitmap));
 	return S_OK;
 }
 
 HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 {
+	uint32_t width{}, height{};
 	wil::com_ptr_t<IWICBitmapEncoder> encoder;
 	wil::com_ptr_t<IWICBitmapFrameEncode> frame_encode;
-	wil::com_ptr_t<IWICStream> wic_stream;
-	uint32_t width{}, height{};
+	wil::com_ptr_t<IWICStream> stream;
 
 	RETURN_IF_FAILED(bitmap->GetSize(&width, &height));
 	WICRect rect(0, 0, to_int(width), to_int(height));
 
-	RETURN_IF_FAILED(g_imaging_factory->CreateStream(&wic_stream));
-	RETURN_IF_FAILED(wic_stream->InitializeFromFilename(path.data(), GENERIC_WRITE));
+	RETURN_IF_FAILED(g_imaging_factory->CreateStream(&stream));
+	RETURN_IF_FAILED(stream->InitializeFromFilename(path.data(), GENERIC_WRITE));
 	RETURN_IF_FAILED(g_imaging_factory->CreateEncoder(GUID_ContainerFormatJpeg, nullptr, &encoder));
-	RETURN_IF_FAILED(encoder->Initialize(wic_stream.get(), WICBitmapEncoderNoCache));
+	RETURN_IF_FAILED(encoder->Initialize(stream.get(), WICBitmapEncoderNoCache));
 	RETURN_IF_FAILED(encoder->CreateNewFrame(&frame_encode, nullptr));
 	RETURN_IF_FAILED(frame_encode->Initialize(nullptr));
 	RETURN_IF_FAILED(frame_encode->SetSize(width, height));
