@@ -18,6 +18,7 @@ public:
 	std::wstring filename();
 	std::wstring parent_path();
 	uint32_t guess_codepage();
+	uint64_t file_size();
 	uint64_t last_modified();
 	void read_wide(uint32_t codepage, std::wstring& content);
 

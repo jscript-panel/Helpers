@@ -129,6 +129,13 @@ uint32_t FileHelper::guess_codepage(wil::zstring_view content)
 	return codepage;
 }
 
+uint64_t FileHelper::file_size()
+{
+	std::error_code ec;
+	if (!fs::is_regular_file(m_path, ec)) return 0Ui64;
+	return fs::file_size(m_path, ec);
+}
+
 uint64_t FileHelper::last_modified()
 {
 	uint64_t ret{};
