@@ -165,11 +165,7 @@ void FileHelper::read_wide(uint32_t codepage, std::wstring& content)
 
 	if (file_size >= 2 && memcmp(ptr.get(), UTF_16_LE_BOM.data(), 2) == 0)
 	{
-		auto str = reinterpret_cast<const wchar_t*>(ptr.get() + 2);
-		const auto len = (file_size - 2) >> 1;
-
-		content.resize(len);
-		pfc::__unsafe__memcpy_t(content.data(), str, len);
+		content = std::wstring(reinterpret_cast<const wchar_t*>(ptr.get() + 2), (file_size - 2) >> 1);
 	}
 	else
 	{
