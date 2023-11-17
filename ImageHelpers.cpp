@@ -86,7 +86,7 @@ HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitm
 	uint32_t old_width{}, old_height{};
 	RETURN_IF_FAILED(bitmap->GetSize(&old_width, &old_height));
 	if (old_width <= max_size && old_height <= max_size) return S_OK;
-	
+
 	if (old_width == old_height)
 	{
 		return resize(max_size, max_size, bitmap);
