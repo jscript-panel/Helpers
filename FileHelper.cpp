@@ -24,10 +24,10 @@ WStrings FileHelper::list_t(EntryType type)
 
 	if (is_folder())
 	{
-		for (auto&& p : DirectoryIterator(m_path, fs::directory_options::skip_permission_denied))
+		for (const fs::directory_entry& entry : DirectoryIterator(m_path, fs::directory_options::skip_permission_denied))
 		{
-			if (type == EntryType::File && p.is_regular_file()) paths.emplace_back(p.path().wstring());
-			else if (type == EntryType::Folder && p.is_directory()) paths.emplace_back(p.path().wstring() + fs::path::preferred_separator);
+			if (type == EntryType::File && entry.is_regular_file()) paths.emplace_back(entry.path().wstring());
+			else if (type == EntryType::Folder && entry.is_directory()) paths.emplace_back(entry.path().wstring() + fs::path::preferred_separator);
 		}
 	}
 	return paths;
