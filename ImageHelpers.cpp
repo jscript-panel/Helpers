@@ -19,23 +19,27 @@ void destroy_resvg_font_options()
 }
 #endif
 
-HRESULT ImageHelpers::album_art_data_to_bitmap(const AlbumArt::Data& data, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
-	RETURN_HR_IF(E_FAIL, data.is_empty());
+	if (max_size == 0U) return S_OK;
 
-	auto ptr = static_cast<const uint8_t*>(data->data());
-	const size_t data_size = data->size();
+	uint32_t old_width{}, old_height{};
+	RETURN_IF_FAILED(bitmap->GetSize(&old_width, &old_height));
+	if (old_width <= max_size && old_height <= max_size) return S_OK;
 
-	if SUCCEEDED(libwebp_data_to_bitmap(ptr, data_size, bitmap)) return S_OK;
+	if (old_width == old_height)
+	{
+		return resize(max_size, max_size, bitmap);
+	}
 
-	auto str = SHCreateMemStream(ptr, to_uint(data_size));
-	RETURN_HR_IF_NULL(E_FAIL, str);
+	const double dmax = static_cast<double>(max_size);
+	const double dw = static_cast<double>(old_width);
+	const double dh = static_cast<double>(old_height);
+	const double s = std::min(dmax / dw, dmax / dh);
+	const uint32_t new_width = to_uint(dw * s);
+	const uint32_t new_height = to_uint(dh * s);
 
-	wil::com_ptr_t<IStream> stream;
-	stream.attach(str);
-
-	RETURN_IF_FAILED(istream_to_bitmap(stream.get(), bitmap));
-	return S_OK;
+	return resize(new_width, new_height, bitmap);
 }
 
 HRESULT ImageHelpers::istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
@@ -73,33 +77,10 @@ HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t data_si
 
 HRESULT ImageHelpers::libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
-	auto data = AlbumArt::istream_to_data(stream);
+	auto data = IStreamHelpers::to_album_art_data(stream);
 	RETURN_HR_IF(E_FAIL, data.is_empty());
 	RETURN_IF_FAILED(libwebp_data_to_bitmap(static_cast<const uint8_t*>(data->data()), data->size(), bitmap));
 	return S_OK;
-}
-
-HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitmap)
-{
-	if (max_size == 0U) return S_OK;
-
-	uint32_t old_width{}, old_height{};
-	RETURN_IF_FAILED(bitmap->GetSize(&old_width, &old_height));
-	if (old_width <= max_size && old_height <= max_size) return S_OK;
-
-	if (old_width == old_height)
-	{
-		return resize(max_size, max_size, bitmap);
-	}
-
-	const double dmax = static_cast<double>(max_size);
-	const double dw = static_cast<double>(old_width);
-	const double dh = static_cast<double>(old_height);
-	const double s = std::min(dmax / dw, dmax / dh);
-	const uint32_t new_width = to_uint(dw * s);
-	const uint32_t new_height = to_uint(dh * s);
-
-	return resize(new_width, new_height, bitmap);
 }
 
 HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>& bitmap)
@@ -144,7 +125,7 @@ IJSImage* ImageHelpers::create(uint32_t width, uint32_t height)
 IJSImage* ImageHelpers::path_to_image(wil::zwstring_view path)
 {
 	wil::com_ptr_t<IStream> stream;
-	if FAILED(SHCreateStreamOnFileEx(path.data(), STGM_READ | STGM_SHARE_DENY_WRITE, GENERIC_READ, FALSE, nullptr, &stream)) return nullptr;
+	if FAILED(IStreamHelpers::create_from_path(path, stream)) return nullptr;
 
 	wil::com_ptr_t<IWICBitmap> bitmap;
 	HRESULT hr = istream_to_bitmap(stream.get(), bitmap);
