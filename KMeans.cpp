@@ -23,7 +23,8 @@ namespace KMeans
 
 	int Cluster::get_colour()
 	{
-		return to_argb(RGB(get_colour_component(0), get_colour_component(1), get_colour_component(2)));
+		const auto c = RGB(get_colour_component(0), get_colour_component(1), get_colour_component(2));
+		return to_argb(c);
 	}
 
 	size_t Cluster::get_total_points() const
