@@ -3,6 +3,11 @@
 template <typename T>
 concept IsNum = std::integral<T> || std::floating_point<T>;
 
+static COLORREF to_colorref(int colour)
+{
+	return RGB(colour >> RED_SHIFT, colour >> GREEN_SHIFT, colour >> BLUE_SHIFT);
+}
+
 static D2D1_RECT_F to_rectf(float x, float y, float w, float h)
 {
 	return D2D1::RectF(x, y, x + w, y + h);
