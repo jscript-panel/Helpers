@@ -1,10 +1,5 @@
 #pragma once
 
-namespace Component
-{
-	static constexpr wil::zwstring_view default_font_name = L"Segoe UI";
-}
-
 class NOVTABLE FontHelper : public service_base
 {
 public:
