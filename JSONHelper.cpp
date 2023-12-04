@@ -43,7 +43,8 @@ JSON JSONHelper::parse(wil::zstring_view str)
 
 JSON JSONHelper::parse(wil::zwstring_view str)
 {
-	return parse(from_wide(str));
+	const auto ustr = from_wide(str);
+	return parse(ustr);
 }
 
 Strings JSONHelper::to_strings(JSON j)

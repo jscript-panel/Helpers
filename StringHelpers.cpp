@@ -3,7 +3,8 @@
 
 BSTR to_bstr(std::string_view str)
 {
-	return SysAllocString(to_wide(str).data());
+	const auto wstr = to_wide(str);
+	return SysAllocString(wstr.data());
 }
 
 Strings split_string(std::string_view text, std::string_view delims)
