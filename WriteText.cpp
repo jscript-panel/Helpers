@@ -12,30 +12,17 @@ HRESULT WriteText::apply_alignment(IDWriteTextLayout* text_layout, uint32_t text
 	return S_OK;
 }
 
-HRESULT WriteText::apply_colour(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& obj, DWRITE_TEXT_RANGE range)
+HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& jcolours)
 {
-	auto& colour = obj["Colour"];
-	if (colour.is_number())
+	for (auto&& jcolour : jcolours)
 	{
-		const auto tmp = colour.get<int64_t>();
+		D2D1_COLOR_F colour{};
+		DWRITE_TEXT_RANGE range{};
 		wil::com_ptr_t<ID2D1SolidColorBrush> brush;
-		RETURN_IF_FAILED(render_target->CreateSolidColorBrush(to_colorf(tmp), &brush));
-		RETURN_IF_FAILED(text_layout->SetDrawingEffect(brush.get(), range));
-	}
-	return S_OK;
-}
 
-HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, wil::zwstring_view colour_string)
-{
-	auto colours = JSONHelper::parse(colour_string);
-	if (colours.is_array())
-	{
-		for (auto&& colour : colours)
-		{
-			DWRITE_TEXT_RANGE range{};
-			RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range(colour, range));
-			RETURN_IF_FAILED(apply_colour(text_layout, render_target, colour, range));
-		}
+		RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range_and_colour(jcolour, range, colour));
+		RETURN_IF_FAILED(render_target->CreateSolidColorBrush(colour, &brush));
+		RETURN_IF_FAILED(text_layout->SetDrawingEffect(brush.get(), range));
 	}
 	return S_OK;
 }
@@ -93,28 +80,30 @@ HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE
 	return S_OK;
 }
 
-HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, wil::zwstring_view font_string)
+HRESULT WriteText::apply_font_or_fonts(IDWriteTextLayout* text_layout, wil::zwstring_view font_string)
 {
-	auto fonts = JSONHelper::parse(font_string);
-	RETURN_HR_IF(E_INVALIDARG, !fonts.is_array());
+	if (font_string.empty()) return S_OK;
 
+	auto font = JSONHelper::parse(font_string);
+	if (font.is_object())
+	{
+		const auto range = DWRITE_TEXT_RANGE(0U, UINT_MAX);
+		RETURN_IF_FAILED(apply_font(text_layout, font, range));
+	}
+	else if (font.is_array())
+	{
+		RETURN_IF_FAILED(apply_fonts(text_layout, font));
+	}
+	return S_OK;
+}
+
+HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& fonts)
+{
 	for (auto&& font : fonts)
 	{
 		DWRITE_TEXT_RANGE range{};
 		RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range(font, range));
 		RETURN_IF_FAILED(apply_font(text_layout, font, range));
-	}
-	return S_OK;
-}
-
-HRESULT WriteText::apply_styles(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& styles)
-{
-	for (auto&& style : styles)
-	{
-		DWRITE_TEXT_RANGE range{};
-		RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range(style, range));
-		RETURN_IF_FAILED(apply_colour(text_layout, render_target, style, range));
-		RETURN_IF_FAILED(apply_font(text_layout, style, range));
 	}
 	return S_OK;
 }

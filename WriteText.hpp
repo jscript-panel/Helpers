@@ -4,11 +4,10 @@ class WriteText
 {
 public:
 	static HRESULT apply_alignment(IDWriteTextLayout* text_layout, uint32_t text_alignment, uint32_t paragraph_alignment, uint32_t word_wrapping);
-	static HRESULT apply_colour(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& obj, DWRITE_TEXT_RANGE range);
-	static HRESULT apply_colours(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, wil::zwstring_view colour_string);
+	static HRESULT apply_colours(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& jcolours);
 	static HRESULT apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE_TEXT_RANGE range);
-	static HRESULT apply_fonts(IDWriteTextLayout* text_layout, wil::zwstring_view font_string);
-	static HRESULT apply_styles(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& styles);
+	static HRESULT apply_font_or_fonts(IDWriteTextLayout* text_layout, wil::zwstring_view font_string);
+	static HRESULT apply_fonts(IDWriteTextLayout* text_layout, JSON& fonts);
 	static HRESULT apply_trimming(IDWriteTextFormat* text_format, uint32_t trimming_granularity);
 	static HRESULT create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, uint32_t trimming_granularity);
 	static HRESULT create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, wil::zwstring_view name = Component::default_font_name, float size = 16.f, uint32_t weight = 400U, uint32_t style = 0U, uint32_t stretch = 5U);
