@@ -12,6 +12,16 @@ Strings split_string(std::string_view text, std::string_view delims)
 	return text | std::views::split(delims) | std::ranges::to<Strings>();
 }
 
+bool compare_string(wil::zstring_view a, wil::zstring_view b)
+{
+	return stricmp_utf8(a.data(), b.data()) == 0;
+}
+
+bool compare_string(wil::zwstring_view a, wil::zwstring_view b)
+{
+	return _wcsicmp(a.data(), b.data()) == 0;
+}
+
 std::string from_wide(std::wstring_view str)
 {
 	return pfc::utf8FromWide(str.data(), str.length()).get_ptr();
