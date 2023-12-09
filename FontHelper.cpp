@@ -16,7 +16,7 @@ namespace
 			init();
 			const auto it = std::ranges::find_if(m_names, [name_to_check](wil::zwstring_view name)
 				{
-					return _wcsicmp(name.data(), name_to_check.data()) == 0;
+					return compare_string(name, name_to_check);
 				});
 
 			return it != m_names.end();
