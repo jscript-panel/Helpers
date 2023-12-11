@@ -1,6 +1,11 @@
 #include "stdafx.hpp"
 #include "WriteText.hpp"
 
+BOOL WriteText::get_BOOL(JSON& obj)
+{
+	return obj.get<bool>() ? TRUE : FALSE;
+}
+
 HRESULT WriteText::apply_alignment(IDWriteTextLayout* text_layout, uint32_t text_alignment, uint32_t paragraph_alignment, uint32_t word_wrapping)
 {
 	const auto dtext_alignment = static_cast<DWRITE_TEXT_ALIGNMENT>(text_alignment);
@@ -9,21 +14,6 @@ HRESULT WriteText::apply_alignment(IDWriteTextLayout* text_layout, uint32_t text
 	RETURN_IF_FAILED(text_layout->SetTextAlignment(dtext_alignment));
 	RETURN_IF_FAILED(text_layout->SetParagraphAlignment(dparagraph_alignment));
 	RETURN_IF_FAILED(text_layout->SetWordWrapping(dword_wrapping));
-	return S_OK;
-}
-
-HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1RenderTarget* render_target, JSON& jcolours)
-{
-	for (auto&& jcolour : jcolours)
-	{
-		D2D1_COLOR_F colour{};
-		DWRITE_TEXT_RANGE range{};
-		wil::com_ptr_t<ID2D1SolidColorBrush> brush;
-
-		RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range_and_colour(jcolour, range, colour));
-		RETURN_IF_FAILED(render_target->CreateSolidColorBrush(colour, &brush));
-		RETURN_IF_FAILED(text_layout->SetDrawingEffect(brush.get(), range));
-	}
 	return S_OK;
 }
 
@@ -39,42 +29,42 @@ HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE
 	auto& size = font["Size"];
 	if (size.is_number_unsigned())
 	{
-		const auto tmp = static_cast<float>(size.get<uint32_t>());
+		const auto tmp = get<float>(size);
 		RETURN_IF_FAILED(text_layout->SetFontSize(tmp, range));
 	}
 
 	auto& weight = font["Weight"];
 	if (weight.is_number_unsigned())
 	{
-		const auto tmp = static_cast<DWRITE_FONT_WEIGHT>(weight.get<uint32_t>());
+		const auto tmp = get<DWRITE_FONT_WEIGHT>(weight);
 		RETURN_IF_FAILED(text_layout->SetFontWeight(tmp, range));
 	}
 
 	auto& style = font["Style"];
 	if (style.is_number_unsigned())
 	{
-		const auto tmp = static_cast<DWRITE_FONT_STYLE>(style.get<uint32_t>());
+		const auto tmp = get<DWRITE_FONT_STYLE>(style);
 		RETURN_IF_FAILED(text_layout->SetFontStyle(tmp, range));
 	}
 
 	auto& stretch = font["Stretch"];
 	if (stretch.is_number_unsigned())
 	{
-		const auto tmp = static_cast<DWRITE_FONT_STRETCH>(stretch.get<uint32_t>());
+		const auto tmp = get<DWRITE_FONT_STRETCH>(stretch);
 		RETURN_IF_FAILED(text_layout->SetFontStretch(tmp, range));
 	}
 
 	auto& strikethrough = font["Strikethrough"];
 	if (strikethrough.is_boolean())
 	{
-		const BOOL tmp = strikethrough.get<bool>() ? TRUE : FALSE;
+		const auto tmp = get_BOOL(strikethrough);
 		RETURN_IF_FAILED(text_layout->SetStrikethrough(tmp, range));
 	}
 
 	auto& underline = font["Underline"];
 	if (underline.is_boolean())
 	{
-		const BOOL tmp = underline.get<bool>() ? TRUE : FALSE;
+		const auto tmp = get_BOOL(underline);
 		RETURN_IF_FAILED(text_layout->SetUnderline(tmp, range));
 	}
 	return S_OK;
@@ -137,4 +127,10 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, wil::zwstring_view text, float width, float height)
 {
 	return g_dwrite_factory->CreateTextLayout(text.data(), to_uint(text.length()), text_format, width, height, &text_layout);
+}
+
+template <typename T>
+T WriteText::get(JSON& obj)
+{
+	return static_cast<T>(obj.get<uint32_t>());
 }
