@@ -45,15 +45,13 @@ void CountryFlag::init_flag_data()
 		const auto str = Component::get_resource_text(IDR_COUNTRIES_JSON);
 		const auto j = JSONHelper::parse(str);
 
-		for (auto&& item : j.items())
+		for (const auto& [key, value] : j.items())
 		{
-			auto& value = item.value();
-
 			Country country;
 			country.name = value["name"].get<std::string>();
 			country.flag = value["flag"].get<std::string>();
 
-			s_flag_data.emplace(item.key(), country);
+			s_flag_data.emplace(key, country);
 		}
 	}
 }
