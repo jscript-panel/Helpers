@@ -18,20 +18,6 @@ HRESULT JSONHelper::to_dwrite_text_range(JSON& obj, DWRITE_TEXT_RANGE& range)
 	return E_INVALIDARG;
 }
 
-HRESULT JSONHelper::to_dwrite_text_range_and_colour(JSON& obj, DWRITE_TEXT_RANGE& range, D2D1_COLOR_F& colour)
-{
-	if (obj.is_object() && obj["Start"].is_number_unsigned() && obj["Length"].is_number_unsigned() && obj["Colour"].is_number())
-	{
-		range.startPosition = obj["Start"].get<uint32_t>();
-		range.length = obj["Length"].get<uint32_t>();
-
-		const auto num = obj["Colour"].get<int64_t>();
-		colour = to_colorf(num);
-		return S_OK;
-	}
-	return E_INVALIDARG;
-}
-
 HRESULT JSONHelper::to_gradient_stops(JSON& jstops, std::vector<D2D1_GRADIENT_STOP>& stops)
 {
 	if (jstops.is_array() && jstops.size() >= 2)
