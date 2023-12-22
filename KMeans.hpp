@@ -4,11 +4,10 @@ namespace KMeans
 {
 	static constexpr size_t kMaxCount = 14U;
 	static constexpr size_t kMaxIterations = 12U;
-	static constexpr std::array kColourIndexes = { 0U, 1U, 2U };
 	static constexpr std::array kMultipliers = { 2.0, 4.0, 3.0 };
 	static constexpr std::array kShifts = { RED_SHIFT, GREEN_SHIFT, BLUE_SHIFT };
 	using Colours = std::vector<int>;
-	using ColourValues = std::array<double, kColourIndexes.size()>;
+	using ColourValues = std::array<double, 3U>;
 	using ColourCounters = std::map<ColourValues, size_t>;
 
 	struct KPoint

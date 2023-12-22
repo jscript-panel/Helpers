@@ -10,10 +10,14 @@ namespace KMeans
 
 	double Cluster::calc_dist(const KPoint& point) const
 	{
-		return std::ranges::fold_left(kColourIndexes, 0.0, [&](double t, const size_t index)
-			{
-				return t + square_then_multiply(m_central_values[index] - point.m_values[index], kMultipliers[index]);
-			});
+		double dist{};
+
+		for (auto&& [central_value, value, multiplier] : std::views::zip(m_central_values, point.m_values, kMultipliers))
+		{
+			dist += square_then_multiply(central_value - value, multiplier);
+		}
+
+		return dist;
 	}
 
 	double Cluster::square_then_multiply(double num, double by) const
@@ -29,10 +33,14 @@ namespace KMeans
 
 	size_t Cluster::get_total_points() const
 	{
-		return std::ranges::fold_left(m_points, size_t{ 0 }, [](size_t t, const KPoint& point)
-			{
-				return t + point.m_pixel_count;
-			});
+		size_t total{};
+
+		for (auto&& point : m_points)
+		{
+			total += point.m_pixel_count;
+		}
+
+		return total;
 	}
 
 	uint8_t Cluster::get_colour_component(size_t index)
@@ -87,17 +95,19 @@ namespace KMeans
 
 			for (auto&& cluster : m_clusters)
 			{
-				for (const size_t index : kColourIndexes)
+				const size_t cluster_total_points = cluster.get_total_points();
+				if (cluster_total_points == 0) continue;
+
+				for (auto&& [index, value] : std::views::enumerate(cluster.m_central_values))
 				{
-					const size_t cluster_total_points = cluster.get_total_points();
-					if (cluster_total_points == 0) continue;
+					double sum{};
 
-					const double sum = std::ranges::fold_left(cluster.m_points, 0.0, [index](double t, const KPoint& point)
-						{
-							return t + (point.m_values[index] * point.m_pixel_count);
-						});
+					for (auto&& point : cluster.m_points)
+					{
+						sum += point.m_values[index] * point.m_pixel_count;
+					}
 
-					cluster.m_central_values[index] = sum / cluster_total_points;
+					value = sum / cluster_total_points;
 				}
 			}
 
