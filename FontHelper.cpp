@@ -85,10 +85,7 @@ namespace
 				m_names.emplace_back(name);
 			}
 
-			std::ranges::sort(m_names, [](wil::zwstring_view a, wil::zwstring_view b)
-				{
-					return StrCmpLogicalW(a.data(), b.data()) < 0;
-				});
+			sort_strings(m_names);
 		}
 
 		static constexpr uint32_t FontNameSize = 100U;

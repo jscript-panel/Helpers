@@ -43,3 +43,11 @@ std::wstring wdisplay_path(wil::zstring_view path)
 	filesystem::g_get_display_path(path.data(), tmp);
 	return to_wide(tmp);
 }
+
+void sort_strings(WStrings& strings)
+{
+	std::ranges::sort(strings, [](auto&& lhs, auto&& rhs)
+		{
+			return StrCmpLogicalW(lhs.data(), rhs.data()) < 0;
+		});
+}

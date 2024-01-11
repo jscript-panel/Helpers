@@ -16,3 +16,4 @@ std::string from_wide(std::wstring_view str);
 std::string print_guid(const GUID& g);
 std::wstring to_wide(std::string_view str);
 std::wstring wdisplay_path(wil::zstring_view path);
+void sort_strings(WStrings& strings);

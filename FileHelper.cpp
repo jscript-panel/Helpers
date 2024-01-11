@@ -30,6 +30,8 @@ WStrings FileHelper::list_t(EntryType type)
 			else if (type == EntryType::Folder && entry.is_directory()) paths.emplace_back(entry.path().wstring() + fs::path::preferred_separator);
 		}
 	}
+
+	sort_strings(paths);
 	return paths;
 }
 
