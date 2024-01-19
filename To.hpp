@@ -8,11 +8,6 @@ static COLORREF to_colorref(int colour)
 	return RGB(colour >> RED_SHIFT, colour >> GREEN_SHIFT, colour >> BLUE_SHIFT);
 }
 
-static D2D1_RECT_F to_rectf(float x, float y, float w, float h)
-{
-	return D2D1::RectF(x, y, x + w, y + h);
-}
-
 static HWND to_wnd(uintptr_t window_id)
 {
 	return reinterpret_cast<HWND>(window_id);
@@ -26,6 +21,11 @@ static VARIANT_BOOL to_variant_bool(auto b)
 static bool to_bool(VARIANT_BOOL vb)
 {
 	return vb != VARIANT_FALSE;
+}
+
+static float to_float(IsNum auto num)
+{
+	return static_cast<float>(num);
 }
 
 static int to_int(std::integral auto num)
@@ -46,8 +46,28 @@ static uint32_t to_uint(IsNum auto num)
 
 static D2D1_COLOR_F to_colorf(int64_t colour)
 {
-	const auto a = static_cast<float>((colour >> 24) & 0xff);
+	const auto a = to_float((colour >> 24) & 0xff);
 	return D2D1::ColorF(to_uint(colour), 1.f / 255.f * a);
+}
+
+static D2D1_RECT_F to_rectf(IsNum auto x, IsNum auto y, IsNum auto w, IsNum auto h)
+{
+	return D2D1::RectF(
+		to_float(x),
+		to_float(y),
+		to_float(x + w),
+		to_float(y + h)
+	);
+}
+
+static D2D1_RECT_F to_rectf(const D2D1_SIZE_U& size)
+{
+	return D2D1::RectF(
+		0.f,
+		0.f,
+		to_float(size.width),
+		to_float(size.height)
+	);
 }
 
 static int to_argb(COLORREF colour)
