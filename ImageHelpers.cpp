@@ -1,4 +1,5 @@
 #include "stdafx.hpp"
+#include "ImageHelpers.hpp"
 
 #ifdef NDEBUG
 resvg_options* g_resvg_font_options{};

@@ -1,4 +1,5 @@
 #include "stdafx.hpp"
+#include "FileHelper.hpp"
 
 namespace fs = std::filesystem;
 

@@ -1,4 +1,5 @@
 #include "stdafx.hpp"
+#include "IStreamHelpers.hpp"
 
 HRESULT IStreamHelpers::check_size(IStream* stream)
 {

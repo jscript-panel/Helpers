@@ -1,4 +1,5 @@
 #include "stdafx.hpp"
+#include "FontHelper.hpp"
 
 namespace
 {
