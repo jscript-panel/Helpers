@@ -160,7 +160,7 @@ uint64_t FileHelper::last_modified()
 
 void FileHelper::read_wide(uint32_t codepage, std::wstring& content)
 {
-	const auto file = wil::unique_hfile(CreateFileW(m_path.wstring().data(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
+	const auto& file = wil::try_open_file(m_path.wstring().data()).file;
 	if (!file) return;
 
 	const auto file_size = GetFileSize(file.get(), nullptr);
