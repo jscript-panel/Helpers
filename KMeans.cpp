@@ -150,8 +150,8 @@ namespace KMeans
 	HRESULT GetColourCounters(IWICBitmap* bitmap, ColourCounters& colour_counters)
 	{
 		static constexpr int colours_length = 200 * 200;
-		static constexpr uint32_t size = 200U;
-		static const WICRect rect(0, 0, 200, 200);
+		static const auto size = D2D1::SizeU(200U, 200U);
+		static const auto rect = to_WICRect(size);
 
 		uint32_t data_size{};
 		uint8_t* data{};
@@ -160,7 +160,7 @@ namespace KMeans
 		wil::com_ptr_t<IWICBitmapLock> lock;
 
 		RETURN_IF_FAILED(g_imaging_factory->CreateBitmapScaler(&scaler));
-		RETURN_IF_FAILED(scaler->Initialize(bitmap, size, size, WICBitmapInterpolationModeFant));
+		RETURN_IF_FAILED(scaler->Initialize(bitmap, size.width, size.height, WICBitmapInterpolationModeFant));
 		RETURN_IF_FAILED(g_imaging_factory->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &copy));
 		RETURN_IF_FAILED(copy->Lock(&rect, WICBitmapLockWrite, &lock));
 		RETURN_IF_FAILED(lock->GetDataPointer(&data_size, &data));

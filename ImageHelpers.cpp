@@ -95,13 +95,13 @@ HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWI
 
 HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 {
-	uint32_t width{}, height{};
+	D2D1_SIZE_U size{};
 	wil::com_ptr_t<IWICBitmapEncoder> encoder;
 	wil::com_ptr_t<IWICBitmapFrameEncode> frame_encode;
 	wil::com_ptr_t<IWICStream> stream;
 
-	RETURN_IF_FAILED(bitmap->GetSize(&width, &height));
-	WICRect rect(0, 0, to_int(width), to_int(height));
+	RETURN_IF_FAILED(bitmap->GetSize(&size.width, &size.height));
+	auto rect = to_WICRect(size);
 
 	RETURN_IF_FAILED(g_imaging_factory->CreateStream(&stream));
 	RETURN_IF_FAILED(stream->InitializeFromFilename(path.data(), GENERIC_WRITE));
@@ -109,7 +109,7 @@ HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 	RETURN_IF_FAILED(encoder->Initialize(stream.get(), WICBitmapEncoderNoCache));
 	RETURN_IF_FAILED(encoder->CreateNewFrame(&frame_encode, nullptr));
 	RETURN_IF_FAILED(frame_encode->Initialize(nullptr));
-	RETURN_IF_FAILED(frame_encode->SetSize(width, height));
+	RETURN_IF_FAILED(frame_encode->SetSize(size.width, size.height));
 	RETURN_IF_FAILED(frame_encode->WriteSource(bitmap, &rect));
 	RETURN_IF_FAILED(frame_encode->Commit());
 	RETURN_IF_FAILED(encoder->Commit());

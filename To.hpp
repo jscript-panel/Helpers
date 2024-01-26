@@ -65,6 +65,16 @@ static D2D1_RECT_F to_rectf(const D2D1_SIZE_U& size)
 	);
 }
 
+static WICRect to_WICRect(const D2D1_SIZE_U& size)
+{
+	WICRect rect{};
+	rect.X = 0;
+	rect.Y = 0;
+	rect.Width = to_int(size.width);
+	rect.Height = to_int(size.height);
+	return rect;
+}
+
 static int to_argb(COLORREF colour)
 {
 	const auto c = GetRValue(colour) << RED_SHIFT | GetGValue(colour) << GREEN_SHIFT | GetBValue(colour) << BLUE_SHIFT | 0xff000000;

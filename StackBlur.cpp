@@ -92,7 +92,7 @@ struct StackRGBA
 	uint32_t r{}, g{}, b{}, a{};
 };
 
-StackBlur::StackBlur(uint8_t p_radius, uint32_t p_width, uint32_t p_height) : radius(std::clamp<uint8_t>(p_radius, 2, 254)), width(p_width), height(p_height)
+StackBlur::StackBlur(uint8_t p_radius, const D2D1_SIZE_U& p_size) : radius(std::clamp<uint8_t>(p_radius, 2, 254)), size(p_size)
 {
 	div = (radius * 2U) + 1U;
 	cores = std::max(1U, std::thread::hardware_concurrency());
@@ -151,15 +151,15 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 	uint8_t* src_ptr;
 	uint8_t* dst_ptr;
 
-	const uint32_t wm = width - 1;
-	const uint32_t hm = height - 1;
-	const uint32_t w4 = width * 4;
+	const uint32_t wm = size.width - 1;
+	const uint32_t hm = size.height - 1;
+	const uint32_t w4 = size.width * 4;
 	uint32_t sp{}, stack_start{};
 
 	if (step == 1)
 	{
-		const uint32_t minY = core * height / cores;
-		const uint32_t maxY = (core + 1) * height / cores;
+		const uint32_t minY = core * size.height / cores;
+		const uint32_t maxY = (core + 1) * size.height / cores;
 
 		for (uint32_t y = minY; y < maxY; ++y)
 		{
@@ -188,10 +188,10 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 
 			sp = radius;
 			uint32_t xp = std::min<uint32_t>(radius, wm);
-			src_ptr = src + 4 * (xp + y * width);
+			src_ptr = src + 4 * (xp + y * size.width);
 			dst_ptr = src + y * w4;
 
-			for (uint32_t x = 0; x < width; ++x)
+			for (uint32_t x = 0; x < size.width; ++x)
 			{
 				InitPtr(dst_ptr, sum);
 				dst_ptr += 4;
@@ -223,8 +223,8 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 	}
 	else if (step == 2)
 	{
-		const uint32_t minX = core * width / cores;
-		const uint32_t maxX = (core + 1) * width / cores;
+		const uint32_t minX = core * size.width / cores;
+		const uint32_t maxX = (core + 1) * size.width / cores;
 
 		for (uint32_t x = minX; x < maxX; ++x)
 		{
@@ -253,10 +253,10 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 
 			sp = radius;
 			uint32_t yp = std::min<uint32_t>(radius, hm);
-			src_ptr = src + 4 * (x + yp * width);
+			src_ptr = src + 4 * (x + yp * size.width);
 			dst_ptr = src + 4 * x;
 
-			for (uint32_t y = 0; y < height; ++y)
+			for (uint32_t y = 0; y < size.height; ++y)
 			{
 				InitPtr(dst_ptr, sum);
 				dst_ptr += w4;
