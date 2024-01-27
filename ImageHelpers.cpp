@@ -24,18 +24,18 @@ HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitm
 {
 	if (max_size == 0U) return S_OK;
 
-	uint32_t old_width{}, old_height{};
-	RETURN_IF_FAILED(bitmap->GetSize(&old_width, &old_height));
-	if (old_width <= max_size && old_height <= max_size) return S_OK;
+	D2D1_SIZE_U size{};
+	RETURN_IF_FAILED(bitmap->GetSize(&size.width, &size.height));
+	if (size.width <= max_size && size.height <= max_size) return S_OK;
 
-	if (old_width == old_height)
+	if (size.width == size.height)
 	{
 		return resize(max_size, max_size, bitmap);
 	}
 
 	const double dmax = static_cast<double>(max_size);
-	const double dw = static_cast<double>(old_width);
-	const double dh = static_cast<double>(old_height);
+	const double dw = static_cast<double>(size.width);
+	const double dh = static_cast<double>(size.height);
 	const double s = std::min(dmax / dw, dmax / dh);
 	const uint32_t new_width = to_uint(dw * s);
 	const uint32_t new_height = to_uint(dh * s);
