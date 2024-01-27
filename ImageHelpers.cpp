@@ -123,7 +123,7 @@ IJSImage* ImageHelpers::create(uint32_t width, uint32_t height)
 	return new ComObject<JSImage>(bitmap);
 }
 
-IJSImage* ImageHelpers::path_to_image(wil::zwstring_view path)
+IJSImage* ImageHelpers::path_to_image(wil::zwstring_view path, uint32_t max_size)
 {
 	wil::com_ptr_t<IStream> stream;
 	if FAILED(IStreamHelpers::create_from_path(path, stream)) return nullptr;
@@ -132,6 +132,7 @@ IJSImage* ImageHelpers::path_to_image(wil::zwstring_view path)
 	HRESULT hr = istream_to_bitmap(stream.get(), bitmap);
 	if FAILED(hr) hr = libwebp_istream_to_bitmap(stream.get(), bitmap);
 	if FAILED(hr) return nullptr;
+	if FAILED(fit_to(max_size, bitmap)) return nullptr;
 	return new ComObject<JSImage>(bitmap, path);
 }
 
