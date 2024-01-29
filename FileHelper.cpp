@@ -61,6 +61,16 @@ bool FileHelper::remove()
 	return fs::remove(m_path, ec);
 }
 
+bool FileHelper::remove_folder_recursive(uint32_t options)
+{
+	if (is_folder())
+	{
+		const auto opt = static_cast<wil::RemoveDirectoryOptions>(options);
+		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.wstring().data(), opt));
+	}
+	return false;
+}
+
 bool FileHelper::write(wil::zstring_view content)
 {
 	auto f = std::ofstream(m_path, std::ios::binary);
