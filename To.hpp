@@ -50,7 +50,7 @@ static D2D1_COLOR_F to_colorf(int64_t colour)
 	return D2D1::ColorF(to_uint(colour), 1.f / 255.f * a);
 }
 
-static D2D1_RECT_F to_rectf(float x, float y, float w, float h)
+static D2D1_RECT_F to_rectf(float x = 0.f, float y = 0.f, float w = 0.f, float h = 0.f)
 {
 	return D2D1::RectF(x, y, x + w, y + h);
 }
