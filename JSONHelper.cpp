@@ -18,24 +18,6 @@ HRESULT JSONHelper::to_dwrite_text_range(JSON& obj, DWRITE_TEXT_RANGE& range)
 	return E_INVALIDARG;
 }
 
-HRESULT JSONHelper::to_gradient_stops(JSON& jstops, std::vector<D2D1_GRADIENT_STOP>& stops)
-{
-	if (jstops.is_array() && jstops.size() >= 2)
-	{
-		for (auto&& jstop : jstops)
-		{
-			RETURN_IF_FAILED(check_two_number_array(jstop));
-
-			const auto pos = jstop[0].get<float>();
-			const auto colour = jstop[1].get<int64_t>();
-			const auto stop = D2D1::GradientStop(pos, to_colorf(colour));
-			stops.emplace_back(stop);
-		}
-		return S_OK;
-	}
-	return E_INVALIDARG;
-}
-
 JSON JSONHelper::parse(wil::zstring_view str)
 {
 	return JSON::parse(str, nullptr, false);
