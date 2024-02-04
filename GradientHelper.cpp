@@ -29,7 +29,6 @@ HRESULT GradientHelper::CreateLinearBrush(JSON& jstops, const D2D1_LINEAR_GRADIE
 	return S_OK;
 }
 
-
 HRESULT GradientHelper::CreateLinearProperties(JSON& obj, float x, float y, D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES& properties)
 {
 	auto start = JSONHelper::to_point(obj["Start"]);
@@ -242,7 +241,7 @@ HRESULT GradientHelper::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_re
 	return E_INVALIDARG;
 }
 
-void GradientHelper::init(ID2D1DeviceContext* context)
+void GradientHelper::Init(ID2D1DeviceContext* context)
 {
 	m_context = context;
 }

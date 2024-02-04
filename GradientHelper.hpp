@@ -10,7 +10,7 @@ public:
 	HRESULT FillEllipse(const D2D1_ELLIPSE& ellipse, wil::zwstring_view str);
 	HRESULT FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_view str);
 	HRESULT FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, wil::zwstring_view str);
-	void init(ID2D1DeviceContext* context);
+	void Init(ID2D1DeviceContext* context);
 
 private:
 	static HRESULT CreateLinearProperties(JSON& obj, float x, float y, D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES& properties);
