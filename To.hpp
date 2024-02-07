@@ -46,8 +46,8 @@ static uint32_t to_uint(IsNum auto num)
 
 static D2D1_COLOR_F to_colorf(int64_t colour)
 {
-	const auto a = to_float((colour >> 24) & 0xff);
-	return D2D1::ColorF(to_uint(colour), 1.f / 255.f * a);
+	const auto a = to_float((colour >> 24) & 0xff) / 255.f;
+	return D2D1::ColorF(to_uint(colour), a);
 }
 
 static D2D1_RECT_F to_rectf(float x = 0.f, float y = 0.f, float w = 0.f, float h = 0.f)
