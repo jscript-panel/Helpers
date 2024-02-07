@@ -13,12 +13,9 @@ public:
 	void Init(ID2D1DeviceContext* context);
 
 private:
-	static HRESULT CreateLinearProperties(JSON& obj, float x, float y, D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES& properties);
-	static HRESULT CreateRadialProperties(JSON& obj, float x, float y, D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES& properties);
-
 	HRESULT CreateGradientStopCollection(JSON& jstops);
-	HRESULT CreateLinearBrush(JSON& jstops, const D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES& properties);
-	HRESULT CreateRadialBrush(JSON& jstops, const D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES& properties);
+	HRESULT CreateLinearBrush(JSON& obj, float x, float y);
+	HRESULT CreateRadialBrush(JSON& obj, float x, float y);
 
 	ID2D1DeviceContext* m_context;
 	wil::com_ptr_t<ID2D1GradientStopCollection> m_collection;
