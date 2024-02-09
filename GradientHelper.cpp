@@ -204,7 +204,7 @@ HRESULT GradientHelper::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_re
 {
 	auto j = JSONHelper::parse(str);
 	if (!j.is_object()) return E_INVALIDARG;
-	
+
 	const auto x = rounded_rect.rect.left;
 	const auto y = rounded_rect.rect.top;
 
