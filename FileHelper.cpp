@@ -6,6 +6,27 @@ namespace fs = std::filesystem;
 FileHelper::FileHelper(wil::zwstring_view path) : m_path(path.data()) {}
 FileHelper::FileHelper(wil::zstring_view path) : m_path(to_wide(path)) {}
 
+#pragma region static
+uint32_t FileHelper::guess_codepage(wil::zstring_view content)
+{
+	if (content.empty()) return 0;
+
+	auto lang = wil::CoCreateInstanceNoThrow<IMultiLanguage2>(CLSID_CMultiLanguage);
+	if (!lang) return 0;
+
+	auto src = const_cast<char*>(content.data());
+	static constexpr int max_encodings = 1;
+	int encoding_count = max_encodings;
+	int size = to_int(content.length());
+	std::array<DetectEncodingInfo, max_encodings> encodings{};
+	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count)) return 0;
+
+	const uint32_t codepage = encodings[0].nCodePage;
+	if (codepage == 20127) return CP_UTF8;
+	return codepage;
+}
+#pragma endregion
+
 WStrings FileHelper::list_files(bool recur)
 {
 	if (recur) return list_t<fs::recursive_directory_iterator>(EntryType::File);
@@ -121,25 +142,6 @@ std::wstring FileHelper::parent_path()
 uint32_t FileHelper::guess_codepage()
 {
 	return guess_codepage(read());
-}
-
-uint32_t FileHelper::guess_codepage(wil::zstring_view content)
-{
-	if (content.empty()) return 0;
-
-	auto lang = wil::CoCreateInstanceNoThrow<IMultiLanguage2>(CLSID_CMultiLanguage);
-	if (!lang) return 0;
-
-	auto src = const_cast<char*>(content.data());
-	static constexpr int max_encodings = 1;
-	int encoding_count = max_encodings;
-	int size = to_int(content.length());
-	std::array<DetectEncodingInfo, max_encodings> encodings{};
-	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count)) return 0;
-
-	const uint32_t codepage = encodings[0].nCodePage;
-	if (codepage == 20127) return CP_UTF8;
-	return codepage;
 }
 
 uint64_t FileHelper::file_size()
