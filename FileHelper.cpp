@@ -86,8 +86,8 @@ bool FileHelper::remove_folder_recursive(uint32_t options)
 {
 	if (is_folder())
 	{
-		const auto opt = static_cast<wil::RemoveDirectoryOptions>(options);
-		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.wstring().data(), opt));
+		const auto options_enum = static_cast<wil::RemoveDirectoryOptions>(options);
+		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.wstring().data(), options_enum));
 	}
 	return false;
 }
