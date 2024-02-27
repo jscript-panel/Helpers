@@ -30,12 +30,19 @@ HRESULT GradientHelper::CreateLinearBrush(JSON& obj, float x, float y)
 
 	if (start && end)
 	{
-		D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES properties{};
-		properties.startPoint = D2D1::Point2F(x + start->x, y + start->y);
-		properties.endPoint = D2D1::Point2F(x + end->x, y + end->y);
+		const auto stop_string = obj["Stops"].dump();
+		if (!m_linear_brush || stop_string != m_linear_stop_string)
+		{
+			D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES properties{};
+			RETURN_IF_FAILED(CreateGradientStopCollection(obj["Stops"]));
+			RETURN_IF_FAILED(m_context->CreateLinearGradientBrush(properties, m_collection.get(), &m_linear_brush));
+			m_linear_stop_string = stop_string;
+		}
 
-		RETURN_IF_FAILED(CreateGradientStopCollection(obj["Stops"]));
-		RETURN_IF_FAILED(m_context->CreateLinearGradientBrush(properties, m_collection.get(), &m_linear_brush));
+		const auto sp = D2D1::Point2F(x + start->x, y + start->y);
+		const auto ep = D2D1::Point2F(x + end->x, y + end->y);
+		m_linear_brush->SetStartPoint(sp);
+		m_linear_brush->SetEndPoint(ep);
 		return S_OK;
 	}
 
@@ -49,13 +56,18 @@ HRESULT GradientHelper::CreateRadialBrush(JSON& obj, float x, float y)
 
 	if (centre && radius)
 	{
-		D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES properties{};
-		properties.center = D2D1::Point2F(x + centre->x, y + centre->y);
-		properties.radiusX = radius->x;
-		properties.radiusY = radius->y;
+		const auto stop_string = obj["Stops"].dump();
+		if (!m_radial_brush || stop_string != m_radial_stop_string)
+		{
+			D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES properties{};
+			RETURN_IF_FAILED(CreateGradientStopCollection(obj["Stops"]));
+			RETURN_IF_FAILED(m_context->CreateRadialGradientBrush(properties, m_collection.get(), &m_radial_brush));
+			m_radial_stop_string = stop_string;
+		}
 
-		RETURN_IF_FAILED(CreateGradientStopCollection(obj["Stops"]));
-		RETURN_IF_FAILED(m_context->CreateRadialGradientBrush(properties, m_collection.get(), &m_radial_brush));
+		m_radial_brush->SetCenter(D2D1::Point2F(x + centre->x, y + centre->y));
+		m_radial_brush->SetRadiusX(radius->x);
+		m_radial_brush->SetRadiusY(radius->y);
 		return S_OK;
 	}
 

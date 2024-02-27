@@ -18,6 +18,7 @@ private:
 	HRESULT CreateRadialBrush(JSON& obj, float x, float y);
 
 	ID2D1DeviceContext* m_context;
+	std::string m_linear_stop_string, m_radial_stop_string;
 	wil::com_ptr_t<ID2D1GradientStopCollection> m_collection;
 	wil::com_ptr_t<ID2D1LinearGradientBrush> m_linear_brush;
 	wil::com_ptr_t<ID2D1RadialGradientBrush> m_radial_brush;
