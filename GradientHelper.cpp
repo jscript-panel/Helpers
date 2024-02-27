@@ -239,3 +239,13 @@ void GradientHelper::Init(ID2D1DeviceContext* context)
 {
 	m_context = context;
 }
+
+void GradientHelper::Reset()
+{
+	m_linear_stop_string.clear();
+	m_radial_stop_string.clear();
+
+	m_collection.reset();
+	m_linear_brush.reset();
+	m_radial_brush.reset();
+}

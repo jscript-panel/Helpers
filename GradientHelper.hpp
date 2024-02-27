@@ -11,6 +11,7 @@ public:
 	HRESULT FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_view str);
 	HRESULT FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, wil::zwstring_view str);
 	void Init(ID2D1DeviceContext* context);
+	void Reset();
 
 private:
 	HRESULT CreateGradientStopCollection(JSON& jstops);
