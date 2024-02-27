@@ -27,7 +27,7 @@ HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE
 	}
 
 	auto& size = font["Size"];
-	if (size.is_number_unsigned())
+	if (size.is_number())
 	{
 		const auto tmp = get<float>(size);
 		RETURN_IF_FAILED(text_layout->SetFontSize(tmp, range));
@@ -70,23 +70,6 @@ HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE
 	return S_OK;
 }
 
-HRESULT WriteText::apply_font_or_fonts(IDWriteTextLayout* text_layout, wil::zwstring_view font_string)
-{
-	if (font_string.empty()) return S_OK;
-
-	auto font = JSONHelper::parse(font_string);
-	if (font.is_object())
-	{
-		const auto range = DWRITE_TEXT_RANGE(0U, UINT_MAX);
-		RETURN_IF_FAILED(apply_font(text_layout, font, range));
-	}
-	else if (font.is_array())
-	{
-		RETURN_IF_FAILED(apply_fonts(text_layout, font));
-	}
-	return S_OK;
-}
-
 HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& fonts)
 {
 	for (auto&& font : fonts)
@@ -109,11 +92,50 @@ HRESULT WriteText::apply_trimming(IDWriteTextFormat* text_format, uint32_t trimm
 	return S_OK;
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, uint32_t trimming_granularity)
+HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, JSON& obj)
 {
-	RETURN_IF_FAILED(create_format(text_format));
-	RETURN_IF_FAILED(apply_trimming(text_format.get(), trimming_granularity));
-	return S_OK;
+	if (!obj.is_object())
+	{
+		return create_format(text_format);
+	}
+
+	std::wstring font_name = Component::default_font_name.data();
+	float font_size = 16.f;
+	DWRITE_FONT_WEIGHT font_weight = DWRITE_FONT_WEIGHT_NORMAL;
+	DWRITE_FONT_STYLE font_style = DWRITE_FONT_STYLE_NORMAL;
+	DWRITE_FONT_STRETCH font_stretch = DWRITE_FONT_STRETCH_NORMAL;
+
+	auto& name = obj["Name"];
+	if (name.is_string())
+	{
+		font_name = to_wide(name.get<std::string>());
+	}
+
+	auto& size = obj["Size"];
+	if (size.is_number())
+	{
+		font_size = get<float>(size);
+	}
+
+	auto& weight = obj["Weight"];
+	if (weight.is_number_unsigned())
+	{
+		font_weight = get<DWRITE_FONT_WEIGHT>(weight);
+	}
+
+	auto& style = obj["Style"];
+	if (style.is_number_unsigned())
+	{
+		font_style = get<DWRITE_FONT_STYLE>(style);
+	}
+
+	auto& stretch = obj["Stretch"];
+	if (stretch.is_number_unsigned())
+	{
+		font_stretch = get<DWRITE_FONT_STRETCH>(stretch);
+	}
+
+	return g_dwrite_factory->CreateTextFormat(font_name.data(), nullptr, font_weight, font_style, font_stretch, font_size, L"", &text_format);
 }
 
 HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, wil::zwstring_view name, float size, uint32_t weight, uint32_t style, uint32_t stretch)
