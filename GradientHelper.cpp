@@ -1,13 +1,46 @@
 #include "stdafx.hpp"
 #include "GradientHelper.hpp"
 
+#pragma region static
+HRESULT GradientHelper::CheckTwoNumberArray(JSON& j)
+{
+	if (j.is_array() && j.size() == 2 && j[0].is_number() && j[1].is_number()) return S_OK;
+	return E_INVALIDARG;
+}
+
+JSON GradientHelper::Parse(wil::zwstring_view str)
+{
+	auto j = JSONHelper::parse(str);
+
+	if (j.is_object())
+	{
+		auto& jstops = j["Stops"];
+		if (jstops.is_array() && jstops.size() >= 2)
+		{
+			return j;
+		}
+	}
+
+	return JSON();
+}
+
+std::optional<D2D1_POINT_2F> GradientHelper::ToPoint(JSON& j)
+{
+	if FAILED(CheckTwoNumberArray(j)) return std::nullopt;
+
+	const auto x = j[0].get<float>();
+	const auto y = j[1].get<float>();
+	return D2D1::Point2F(x, y);
+}
+#pragma endregion
+
 HRESULT GradientHelper::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D1GradientStopCollection>& collection)
 {
 	std::vector<D2D1_GRADIENT_STOP> stops;
 
 	for (auto&& jstop : jstops)
 	{
-		RETURN_IF_FAILED(JSONHelper::check_two_number_array(jstop));
+		RETURN_IF_FAILED(CheckTwoNumberArray(jstop));
 
 		const auto pos = jstop[0].get<float>();
 		const auto colour = jstop[1].get<int64_t>();
@@ -20,8 +53,8 @@ HRESULT GradientHelper::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_
 
 HRESULT GradientHelper::CreateLinearBrush(JSON& obj, float x, float y)
 {
-	auto start = JSONHelper::to_point(obj["Start"]);
-	auto end = JSONHelper::to_point(obj["End"]);
+	auto start = ToPoint(obj["Start"]);
+	auto end = ToPoint(obj["End"]);
 
 	if (start && end)
 	{
@@ -49,8 +82,8 @@ HRESULT GradientHelper::CreateLinearBrush(JSON& obj, float x, float y)
 
 HRESULT GradientHelper::CreateRadialBrush(JSON& obj, float x, float y)
 {
-	auto centre = JSONHelper::to_point(obj["Centre"]);
-	auto radius = JSONHelper::to_point(obj["Radius"]);
+	auto centre = ToPoint(obj["Centre"]);
+	auto radius = ToPoint(obj["Radius"]);
 
 	if (centre && radius)
 	{
@@ -234,22 +267,6 @@ HRESULT GradientHelper::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_re
 	}
 
 	return E_INVALIDARG;
-}
-
-JSON GradientHelper::Parse(wil::zwstring_view str)
-{
-	auto j = JSONHelper::parse(str);
-
-	if (j.is_object())
-	{
-		auto& jstops = j["Stops"];
-		if (jstops.is_array() && jstops.size() >= 2)
-		{
-			return j;
-		}
-	}
-
-	return JSON();
 }
 
 void GradientHelper::Init(ID2D1DeviceContext* context)

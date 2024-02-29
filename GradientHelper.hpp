@@ -14,10 +14,13 @@ public:
 	void Reset();
 
 private:
+	static HRESULT CheckTwoNumberArray(JSON& j);
+	static JSON Parse(wil::zwstring_view str);
+	static std::optional<D2D1_POINT_2F> ToPoint(JSON& j);
+
 	HRESULT CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D1GradientStopCollection>& collection);
 	HRESULT CreateLinearBrush(JSON& obj, float x, float y);
 	HRESULT CreateRadialBrush(JSON& obj, float x, float y);
-	JSON Parse(wil::zwstring_view str);
 
 	ID2D1DeviceContext* m_context;
 	std::string m_linear_stop_string, m_radial_stop_string;
