@@ -1,12 +1,6 @@
 #include "stdafx.hpp"
 #include "JSONHelper.hpp"
 
-HRESULT JSONHelper::check_two_number_array(JSON& j)
-{
-	if (j.is_array() && j.size() == 2 && j[0].is_number() && j[1].is_number()) return S_OK;
-	return E_INVALIDARG;
-}
-
 HRESULT JSONHelper::to_dwrite_text_range(JSON& obj, DWRITE_TEXT_RANGE& range)
 {
 	if (obj.is_object() && obj["Start"].is_number_unsigned() && obj["Length"].is_number_unsigned())
@@ -36,15 +30,6 @@ Strings JSONHelper::to_strings(JSON j)
 	auto transform = [](auto&& j2) { return to_string(j2); };
 	auto filter = [](auto&& str) { return str.length() > 0; };
 	return j | std::views::transform(transform) | std::views::filter(filter) | std::ranges::to<Strings>();
-}
-
-std::optional<D2D1_POINT_2F> JSONHelper::to_point(JSON& j)
-{
-	if FAILED(check_two_number_array(j)) return std::nullopt;
-
-	const auto x = j[0].get<float>();
-	const auto y = j[1].get<float>();
-	return D2D1::Point2F(x, y);
 }
 
 std::string JSONHelper::to_string(JSON& j)
