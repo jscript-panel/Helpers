@@ -87,7 +87,7 @@ HRESULT WriteText::apply_trimming(IDWriteTextFormat* text_format, uint32_t trimm
 	trimming.granularity = static_cast<DWRITE_TRIMMING_GRANULARITY>(trimming_granularity);
 
 	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
-	RETURN_IF_FAILED(g_dwrite_factory->CreateEllipsisTrimmingSign(text_format, &trimmingSign));
+	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format, &trimmingSign));
 	RETURN_IF_FAILED(text_format->SetTrimming(&trimming, trimmingSign.get()));
 	return S_OK;
 }
@@ -135,7 +135,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 		font_stretch = get<DWRITE_FONT_STRETCH>(stretch);
 	}
 
-	return g_dwrite_factory->CreateTextFormat(font_name.data(), nullptr, font_weight, font_style, font_stretch, font_size, L"", &text_format);
+	return factory::dwrite->CreateTextFormat(font_name.data(), nullptr, font_weight, font_style, font_stretch, font_size, L"", &text_format);
 }
 
 HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, wil::zwstring_view name, float size, uint32_t weight, uint32_t style, uint32_t stretch)
@@ -143,12 +143,12 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 	const auto dweight = static_cast<DWRITE_FONT_WEIGHT>(weight);
 	const auto dstyle = static_cast<DWRITE_FONT_STYLE>(style);
 	const auto dstretch = static_cast<DWRITE_FONT_STRETCH>(stretch);
-	return g_dwrite_factory->CreateTextFormat(name.data(), nullptr, dweight, dstyle, dstretch, size, L"", &text_format);
+	return factory::dwrite->CreateTextFormat(name.data(), nullptr, dweight, dstyle, dstretch, size, L"", &text_format);
 }
 
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, wil::zwstring_view text, float width, float height)
 {
-	return g_dwrite_factory->CreateTextLayout(text.data(), to_uint(text.length()), text_format, width, height, &text_layout);
+	return factory::dwrite->CreateTextLayout(text.data(), to_uint(text.length()), text_format, width, height, &text_layout);
 }
 
 template <typename T>

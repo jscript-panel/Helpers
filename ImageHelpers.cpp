@@ -49,10 +49,10 @@ HRESULT ImageHelpers::istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitm
 	wil::com_ptr_t<IWICBitmapFrameDecode> frame_decode;
 	wil::com_ptr_t<IWICBitmapSource> source;
 
-	RETURN_IF_FAILED(g_imaging_factory->CreateDecoderFromStream(stream, nullptr, WICDecodeMetadataCacheOnDemand, &decoder));
+	RETURN_IF_FAILED(factory::imaging->CreateDecoderFromStream(stream, nullptr, WICDecodeMetadataCacheOnDemand, &decoder));
 	RETURN_IF_FAILED(decoder->GetFrame(0, &frame_decode));
 	RETURN_IF_FAILED(WICConvertBitmapSource(GUID_WICPixelFormat32bppPBGRA, frame_decode.get(), &source));
-	RETURN_IF_FAILED(g_imaging_factory->CreateBitmapFromSource(source.get(), WICBitmapCacheOnDemand, &bitmap));
+	RETURN_IF_FAILED(factory::imaging->CreateBitmapFromSource(source.get(), WICBitmapCacheOnDemand, &bitmap));
 	return S_OK;
 }
 
@@ -68,7 +68,7 @@ HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t data_si
 			const auto height = to_uint(bs.height);
 			const auto stride = width * 4U;
 			const auto size = stride * height;
-			const HRESULT hr = g_imaging_factory->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, stride, size, webp, &bitmap);
+			const HRESULT hr = factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, stride, size, webp, &bitmap);
 			WebPFree(webp);
 			return hr;
 		}
@@ -87,9 +87,9 @@ HRESULT ImageHelpers::libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<
 HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
 	wil::com_ptr_t<IWICBitmapScaler> scaler;
-	RETURN_IF_FAILED(g_imaging_factory->CreateBitmapScaler(&scaler));
+	RETURN_IF_FAILED(factory::imaging->CreateBitmapScaler(&scaler));
 	RETURN_IF_FAILED(scaler->Initialize(bitmap.get(), width, height, WICBitmapInterpolationModeFant));
-	RETURN_IF_FAILED(g_imaging_factory->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &bitmap));
+	RETURN_IF_FAILED(factory::imaging->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &bitmap));
 	return S_OK;
 }
 
@@ -103,9 +103,9 @@ HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 	RETURN_IF_FAILED(bitmap->GetSize(&size.width, &size.height));
 	auto rect = to_WICRect(size);
 
-	RETURN_IF_FAILED(g_imaging_factory->CreateStream(&stream));
+	RETURN_IF_FAILED(factory::imaging->CreateStream(&stream));
 	RETURN_IF_FAILED(stream->InitializeFromFilename(path.data(), GENERIC_WRITE));
-	RETURN_IF_FAILED(g_imaging_factory->CreateEncoder(GUID_ContainerFormatJpeg, nullptr, &encoder));
+	RETURN_IF_FAILED(factory::imaging->CreateEncoder(GUID_ContainerFormatJpeg, nullptr, &encoder));
 	RETURN_IF_FAILED(encoder->Initialize(stream.get(), WICBitmapEncoderNoCache));
 	RETURN_IF_FAILED(encoder->CreateNewFrame(&frame_encode, nullptr));
 	RETURN_IF_FAILED(frame_encode->Initialize(nullptr));
@@ -119,7 +119,7 @@ HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 IJSImage* ImageHelpers::create(uint32_t width, uint32_t height)
 {
 	wil::com_ptr_t<IWICBitmap> bitmap;
-	if FAILED(g_imaging_factory->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &bitmap)) return nullptr;
+	if FAILED(factory::imaging->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &bitmap)) return nullptr;
 	return new ComObject<JSImage>(bitmap);
 }
 
@@ -194,7 +194,7 @@ IJSImage* ImageHelpers::svg_to_image([[maybe_unused]] wil::zwstring_view path_or
 		resvg_tree_destroy(tree);
 		tree = nullptr;
 
-		if SUCCEEDED(g_imaging_factory->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPRGBA, stride, size, data.data(), &bitmap))
+		if SUCCEEDED(factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPRGBA, stride, size, data.data(), &bitmap))
 		{
 			return new ComObject<JSImage>(bitmap);
 		}

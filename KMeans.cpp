@@ -159,9 +159,9 @@ namespace KMeans
 		wil::com_ptr_t<IWICBitmap> copy;
 		wil::com_ptr_t<IWICBitmapLock> lock;
 
-		RETURN_IF_FAILED(g_imaging_factory->CreateBitmapScaler(&scaler));
+		RETURN_IF_FAILED(factory::imaging->CreateBitmapScaler(&scaler));
 		RETURN_IF_FAILED(scaler->Initialize(bitmap, size.width, size.height, WICBitmapInterpolationModeFant));
-		RETURN_IF_FAILED(g_imaging_factory->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &copy));
+		RETURN_IF_FAILED(factory::imaging->CreateBitmapFromSource(scaler.get(), WICBitmapCacheOnDemand, &copy));
 		RETURN_IF_FAILED(copy->Lock(&rect, WICBitmapLockWrite, &lock));
 		RETURN_IF_FAILED(lock->GetDataPointer(&data_size, &data));
 		RETURN_HR_IF_NULL(E_POINTER, data);
