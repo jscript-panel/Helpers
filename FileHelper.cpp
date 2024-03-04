@@ -57,6 +57,38 @@ WStrings FileHelper::list_t(EntryType type)
 	return paths;
 }
 
+bool FileHelper::copy_file(wil::zwstring_view to, bool overwrite)
+{
+	if (is_file())
+	{
+		fs::copy_options options{};
+		if (overwrite) options |= fs::copy_options::overwrite_existing;
+
+		const auto fs_to = fs::path(to.data());
+		std::error_code ec;
+		return fs::copy_file(m_path, fs_to, options, ec);
+	}
+
+	return false;
+}
+
+bool FileHelper::copy_folder(wil::zwstring_view to, bool overwrite, bool recur)
+{
+	if (is_folder())
+	{
+		fs::copy_options options{};
+		if (overwrite) options |= fs::copy_options::overwrite_existing;
+		if (recur) options |= fs::copy_options::recursive;
+
+		const auto fs_to = fs::path(to.data());
+		std::error_code ec;
+		fs::copy(m_path, fs_to, options, ec);
+		return ec.value() == 0;
+	}
+
+	return false;
+}
+
 bool FileHelper::create_folder()
 {
 	std::error_code ec;
@@ -89,6 +121,19 @@ bool FileHelper::remove_folder_recursive(uint32_t options)
 		const auto options_enum = static_cast<wil::RemoveDirectoryOptions>(options);
 		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.wstring().data(), options_enum));
 	}
+	return false;
+}
+
+bool FileHelper::rename(wil::zwstring_view to)
+{
+	if (is_file() || is_folder())
+	{
+		const auto fs_to = fs::path(to.data());
+		std::error_code ec;
+		fs::rename(m_path, fs_to, ec);
+		return ec.value() == 0;
+	}
+
 	return false;
 }
 

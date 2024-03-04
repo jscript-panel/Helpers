@@ -8,11 +8,14 @@ public:
 
 	WStrings list_files(bool recur = false);
 	WStrings list_folders(bool recur = false);
+	bool copy_file(wil::zwstring_view to, bool overwrite);
+	bool copy_folder(wil::zwstring_view to, bool overwrite, bool recur);
 	bool create_folder();
 	bool is_file();
 	bool is_folder();
 	bool remove();
 	bool remove_folder_recursive(uint32_t options);
+	bool rename(wil::zwstring_view to);
 	bool write(wil::zstring_view content);
 	bool write(wil::zwstring_view content);
 	std::string read();
