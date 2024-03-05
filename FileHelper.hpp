@@ -6,6 +6,8 @@ public:
 	FileHelper(wil::zwstring_view path);
 	FileHelper(wil::zstring_view path);
 
+	static bool rename(wil::zwstring_view from, wil::zwstring_view to);
+
 	WStrings list_files(bool recur = false);
 	WStrings list_folders(bool recur = false);
 	bool copy_file(wil::zwstring_view to, bool overwrite);
@@ -15,7 +17,6 @@ public:
 	bool is_folder();
 	bool remove();
 	bool remove_folder_recursive(uint32_t options);
-	bool rename(wil::zwstring_view to);
 	bool write(wil::zstring_view content);
 	bool write(wil::zwstring_view content);
 	std::string read();

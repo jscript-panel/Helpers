@@ -7,6 +7,16 @@ FileHelper::FileHelper(wil::zwstring_view path) : m_path(path.data()) {}
 FileHelper::FileHelper(wil::zstring_view path) : m_path(to_wide(path)) {}
 
 #pragma region static
+bool FileHelper::rename(wil::zwstring_view from, wil::zwstring_view to)
+{
+	const auto fs_from = fs::path(from.data());
+	const auto fs_to = fs::path(to.data());
+	std::error_code ec;
+
+	fs::rename(fs_from, fs_to, ec);
+	return ec.value() == 0;
+}
+
 uint32_t FileHelper::guess_codepage(wil::zstring_view content)
 {
 	if (content.empty()) return 0;
@@ -121,19 +131,6 @@ bool FileHelper::remove_folder_recursive(uint32_t options)
 		const auto options_enum = static_cast<wil::RemoveDirectoryOptions>(options);
 		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.wstring().data(), options_enum));
 	}
-	return false;
-}
-
-bool FileHelper::rename(wil::zwstring_view to)
-{
-	if (is_file() || is_folder())
-	{
-		const auto fs_to = fs::path(to.data());
-		std::error_code ec;
-		fs::rename(m_path, fs_to, ec);
-		return ec.value() == 0;
-	}
-
 	return false;
 }
 
