@@ -58,8 +58,14 @@ WStrings FileHelper::list_t(EntryType type)
 	{
 		for (const fs::directory_entry& entry : DirectoryIterator(m_path, fs::directory_options::skip_permission_denied))
 		{
-			if (type == EntryType::File && entry.is_regular_file()) paths.emplace_back(entry.path().wstring());
-			else if (type == EntryType::Folder && entry.is_directory()) paths.emplace_back(entry.path().wstring() + fs::path::preferred_separator);
+			if (type == EntryType::File && entry.is_regular_file())
+			{
+				paths.emplace_back(entry.path().wstring());
+			}
+			else if (type == EntryType::Folder && entry.is_directory())
+			{
+				paths.emplace_back(entry.path().wstring() + fs::path::preferred_separator);
+			}
 		}
 	}
 
