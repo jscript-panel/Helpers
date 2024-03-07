@@ -2,6 +2,15 @@
 #include "ImageHelpers.hpp"
 
 #ifdef NDEBUG
+#pragma comment(lib, "ntdll.lib")
+#pragma comment(lib, "Userenv.lib")
+
+#ifdef _WIN64
+#pragma comment(lib, "../../resvg-lib/x64/resvg.lib")
+#else
+#pragma comment(lib, "../../resvg-lib/Win32/resvg.lib")
+#endif
+
 resvg_options* g_resvg_font_options{};
 
 void create_resvg_font_options()
