@@ -22,7 +22,7 @@ HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE
 	auto& name = font["Name"];
 	if (name.is_string())
 	{
-		const std::wstring tmp = to_wide(name.get<std::string>());
+		const auto tmp = JSONHelper::to_wstring(name);
 		RETURN_IF_FAILED(text_layout->SetFontFamilyName(tmp.data(), range));
 	}
 
@@ -108,7 +108,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 	auto& name = obj["Name"];
 	if (name.is_string())
 	{
-		font_name = to_wide(name.get<std::string>());
+		font_name = JSONHelper::to_wstring(name);
 	}
 
 	auto& size = obj["Size"];

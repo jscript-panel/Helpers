@@ -45,3 +45,9 @@ std::string JSONHelper::to_string(JSON& j)
 
 	return std::string();
 }
+
+std::wstring JSONHelper::to_wstring(JSON& j)
+{
+	const auto str = to_string(j);
+	return to_wide(str);
+}

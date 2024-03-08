@@ -10,4 +10,5 @@ public:
 	static JSON parse(wil::zwstring_view str);
 	static Strings to_strings(JSON j);
 	static std::string to_string(JSON& j);
+	static std::wstring to_wstring(JSON& j);
 };
