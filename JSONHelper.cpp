@@ -34,7 +34,14 @@ Strings JSONHelper::to_strings(JSON j)
 
 std::string JSONHelper::to_string(JSON& j)
 {
-	if (j.is_null()) return std::string();
-	if (j.is_string()) return j.get<std::string>();
-	return j.dump();
+	if (j.is_string())
+	{
+		return j.get<std::string>();
+	}
+	else if (j.is_number())
+	{
+		return j.dump();
+	}
+
+	return std::string();
 }
