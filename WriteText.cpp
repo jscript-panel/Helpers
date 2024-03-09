@@ -19,11 +19,12 @@ HRESULT WriteText::apply_alignment(IDWriteTextLayout* text_layout, uint32_t text
 
 HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE_TEXT_RANGE range)
 {
-	auto& name = font["Name"];
-	if (name.is_string())
 	{
-		const auto tmp = JSONHelper::to_wstring(name);
-		RETURN_IF_FAILED(text_layout->SetFontFamilyName(tmp.data(), range));
+		const auto tmp = JSONHelper::to_wstring(font["Name"]);
+		if (tmp.length())
+		{
+			RETURN_IF_FAILED(text_layout->SetFontFamilyName(tmp.data(), range));
+		}
 	}
 
 	auto& size = font["Size"];
@@ -92,9 +93,9 @@ HRESULT WriteText::apply_trimming(IDWriteTextFormat* text_format, uint32_t trimm
 	return S_OK;
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, JSON& obj)
+HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, JSON& font)
 {
-	if (!obj.is_object())
+	if (!font.is_object())
 	{
 		return create_format(text_format);
 	}
@@ -105,31 +106,31 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 	DWRITE_FONT_STYLE font_style = DWRITE_FONT_STYLE_NORMAL;
 	DWRITE_FONT_STRETCH font_stretch = DWRITE_FONT_STRETCH_NORMAL;
 
-	auto& name = obj["Name"];
-	if (name.is_string())
+	const auto name = JSONHelper::to_wstring(font["Name"]);
+	if (name.length())
 	{
-		font_name = JSONHelper::to_wstring(name);
+		font_name = name;
 	}
 
-	auto& size = obj["Size"];
+	auto& size = font["Size"];
 	if (size.is_number())
 	{
 		font_size = get<float>(size);
 	}
 
-	auto& weight = obj["Weight"];
+	auto& weight = font["Weight"];
 	if (weight.is_number_unsigned())
 	{
 		font_weight = get<DWRITE_FONT_WEIGHT>(weight);
 	}
 
-	auto& style = obj["Style"];
+	auto& style = font["Style"];
 	if (style.is_number_unsigned())
 	{
 		font_style = get<DWRITE_FONT_STYLE>(style);
 	}
 
-	auto& stretch = obj["Stretch"];
+	auto& stretch = font["Stretch"];
 	if (stretch.is_number_unsigned())
 	{
 		font_stretch = get<DWRITE_FONT_STRETCH>(stretch);
