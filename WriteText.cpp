@@ -100,7 +100,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 		return create_format(text_format);
 	}
 
-	std::wstring font_name = Component::default_font_name.data();
+	std::wstring font_name = Component::DefaultFont.data();
 	float font_size = 16.f;
 	DWRITE_FONT_WEIGHT font_weight = DWRITE_FONT_WEIGHT_NORMAL;
 	DWRITE_FONT_STYLE font_style = DWRITE_FONT_STYLE_NORMAL;
