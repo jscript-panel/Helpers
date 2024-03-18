@@ -6,14 +6,21 @@ BOOL WriteText::get_BOOL(JSON& obj)
 	return obj.get<bool>() ? TRUE : FALSE;
 }
 
-HRESULT WriteText::apply_alignment(IDWriteTextLayout* text_layout, uint32_t text_alignment, uint32_t paragraph_alignment, uint32_t word_wrapping)
+HRESULT WriteText::apply_alignment_and_trimming(IDWriteTextFormat* text_format, uint32_t text_alignment, uint32_t paragraph_alignment, uint32_t word_wrapping, uint32_t trimming_granularity)
 {
 	const auto dtext_alignment = static_cast<DWRITE_TEXT_ALIGNMENT>(text_alignment);
 	const auto dparagraph_alignment = static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(paragraph_alignment);
 	const auto dword_wrapping = static_cast<DWRITE_WORD_WRAPPING>(word_wrapping);
-	RETURN_IF_FAILED(text_layout->SetTextAlignment(dtext_alignment));
-	RETURN_IF_FAILED(text_layout->SetParagraphAlignment(dparagraph_alignment));
-	RETURN_IF_FAILED(text_layout->SetWordWrapping(dword_wrapping));
+
+	DWRITE_TRIMMING trimming{};
+	trimming.granularity = static_cast<DWRITE_TRIMMING_GRANULARITY>(trimming_granularity);
+	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
+
+	RETURN_IF_FAILED(text_format->SetTextAlignment(dtext_alignment));
+	RETURN_IF_FAILED(text_format->SetParagraphAlignment(dparagraph_alignment));
+	RETURN_IF_FAILED(text_format->SetWordWrapping(dword_wrapping));
+	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format, &trimmingSign));
+	RETURN_IF_FAILED(text_format->SetTrimming(&trimming, trimmingSign.get()));
 	return S_OK;
 }
 
@@ -79,17 +86,7 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& fonts)
 		RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range(font, range));
 		RETURN_IF_FAILED(apply_font(text_layout, font, range));
 	}
-	return S_OK;
-}
 
-HRESULT WriteText::apply_trimming(IDWriteTextFormat* text_format, uint32_t trimming_granularity)
-{
-	DWRITE_TRIMMING trimming{};
-	trimming.granularity = static_cast<DWRITE_TRIMMING_GRANULARITY>(trimming_granularity);
-
-	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
-	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format, &trimmingSign));
-	RETURN_IF_FAILED(text_format->SetTrimming(&trimming, trimmingSign.get()));
 	return S_OK;
 }
 
@@ -100,17 +97,13 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 		return create_format(text_format);
 	}
 
-	std::wstring font_name = Component::DefaultFont.data();
+	std::wstring font_name = JSONHelper::to_wstring(font["Name"]);
+	if (font_name.empty()) font_name = Component::DefaultFont.data();
+
 	float font_size = 16.f;
 	DWRITE_FONT_WEIGHT font_weight = DWRITE_FONT_WEIGHT_NORMAL;
 	DWRITE_FONT_STYLE font_style = DWRITE_FONT_STYLE_NORMAL;
 	DWRITE_FONT_STRETCH font_stretch = DWRITE_FONT_STRETCH_NORMAL;
-
-	const auto name = JSONHelper::to_wstring(font["Name"]);
-	if (name.length())
-	{
-		font_name = name;
-	}
 
 	auto& size = font["Size"];
 	if (size.is_number())
