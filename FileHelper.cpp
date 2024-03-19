@@ -60,11 +60,11 @@ WStrings FileHelper::list_t(EntryType type)
 		{
 			if (type == EntryType::File && entry.is_regular_file())
 			{
-				paths.emplace_back(entry.path().wstring());
+				paths.emplace_back(entry.path().native());
 			}
 			else if (type == EntryType::Folder && entry.is_directory())
 			{
-				paths.emplace_back(entry.path().wstring() + fs::path::preferred_separator);
+				paths.emplace_back(entry.path().native() + fs::path::preferred_separator);
 			}
 		}
 	}
@@ -135,7 +135,7 @@ bool FileHelper::remove_folder_recursive(uint32_t options)
 	if (is_folder())
 	{
 		const auto options_enum = static_cast<wil::RemoveDirectoryOptions>(options);
-		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.wstring().data(), options_enum));
+		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.c_str(), options_enum));
 	}
 	return false;
 }
@@ -179,12 +179,12 @@ std::string FileHelper::read()
 
 std::wstring FileHelper::filename()
 {
-	return m_path.stem().wstring();
+	return m_path.stem().native();
 }
 
 std::wstring FileHelper::parent_path()
 {
-	return m_path.parent_path().wstring() + fs::path::preferred_separator;
+	return m_path.parent_path().native() + fs::path::preferred_separator;
 }
 
 uint32_t FileHelper::guess_codepage()
@@ -220,7 +220,7 @@ uint64_t FileHelper::last_modified()
 
 void FileHelper::read_wide(uint32_t codepage, std::wstring& content)
 {
-	const auto& file = wil::try_open_file(m_path.wstring().data()).file;
+	const auto& file = wil::try_open_file(m_path.c_str()).file;
 	if (!file) return;
 
 	const auto file_size = GetFileSize(file.get(), nullptr);
