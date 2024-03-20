@@ -63,7 +63,7 @@ namespace KMeans
 		const size_t max_count = std::max(m_count, kMaxCount);
 		const size_t count = std::min(max_count, m_points.size());
 
-		for (const size_t i : std::views::iota(0U, count))
+		for (const size_t i : std::views::iota(size_t{}, count))
 		{
 			const size_t index_point = i * m_points.size() / count;
 			m_points[index_point].m_cluster_id = i;
@@ -71,7 +71,7 @@ namespace KMeans
 			m_clusters.emplace_back(cluster);
 		}
 
-		for ([[maybe_unused]] const size_t iteration : std::views::iota(0U, kMaxIterations))
+		for ([[maybe_unused]] const size_t iteration : std::views::iota(size_t{}, kMaxIterations))
 		{
 			bool done = true;
 

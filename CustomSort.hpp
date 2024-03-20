@@ -22,7 +22,7 @@ namespace CustomSort
 	{
 		Order sort_order;
 		sort_order.set_size(count);
-		std::iota(sort_order.begin(), sort_order.end(), 0U);
+		std::iota(sort_order.begin(), sort_order.end(), size_t{});
 		return sort_order;
 	}
 
