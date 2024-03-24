@@ -104,25 +104,20 @@ HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWI
 
 HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 {
-	D2D1_SIZE_U size{};
-	wil::com_ptr_t<IWICBitmapEncoder> encoder;
-	wil::com_ptr_t<IWICBitmapFrameEncode> frame_encode;
-	wil::com_ptr_t<IWICStream> stream;
+	const string8 upath = from_wide(path);
+	album_art_data_ptr data;
 
-	RETURN_IF_FAILED(bitmap->GetSize(&size.width, &size.height));
-	auto rect = to_WICRect(size);
+	RETURN_IF_FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data));
 
-	RETURN_IF_FAILED(factory::imaging->CreateStream(&stream));
-	RETURN_IF_FAILED(stream->InitializeFromFilename(path.data(), GENERIC_WRITE));
-	RETURN_IF_FAILED(factory::imaging->CreateEncoder(GUID_ContainerFormatJpeg, nullptr, &encoder));
-	RETURN_IF_FAILED(encoder->Initialize(stream.get(), WICBitmapEncoderNoCache));
-	RETURN_IF_FAILED(encoder->CreateNewFrame(&frame_encode, nullptr));
-	RETURN_IF_FAILED(frame_encode->Initialize(nullptr));
-	RETURN_IF_FAILED(frame_encode->SetSize(size.width, size.height));
-	RETURN_IF_FAILED(frame_encode->WriteSource(bitmap, &rect));
-	RETURN_IF_FAILED(frame_encode->Commit());
-	RETURN_IF_FAILED(encoder->Commit());
-	return S_OK;
+	try
+	{
+		auto f = fileOpenWriteNew(upath, fb2k::noAbort, 0.5);
+		f->write(data->get_ptr(), data->get_size(), fb2k::noAbort);
+		return S_OK;
+	}
+	catch (...) {}
+
+	return E_FAIL;
 }
 
 IJSImage* ImageHelpers::create(uint32_t width, uint32_t height)
