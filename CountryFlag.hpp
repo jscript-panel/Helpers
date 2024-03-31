@@ -14,7 +14,5 @@ private:
 
 	using FlagData = std::map<std::string, Country>;
 
-	static void init_flag_data();
-
-	inline static FlagData s_flag_data;
+	static FlagData get_flag_data();
 };
