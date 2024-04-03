@@ -19,7 +19,7 @@ JSON JSONHelper::parse(wil::zstring_view str)
 
 JSON JSONHelper::parse(wil::zwstring_view str)
 {
-	const auto ustr = from_wide(str);
+	const auto ustr = js::from_wide(str);
 	return parse(ustr);
 }
 
@@ -49,5 +49,5 @@ std::string JSONHelper::to_string(JSON& j)
 std::wstring JSONHelper::to_wstring(JSON& j)
 {
 	const auto str = to_string(j);
-	return to_wide(str);
+	return js::to_wide(str);
 }

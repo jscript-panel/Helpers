@@ -37,7 +37,7 @@ std::string CountryFlag::get(wil::zstring_view country_or_code)
 	{
 		const auto it = std::ranges::find_if(flag_data, [&](auto&& item)
 			{
-				return compare_string(country_or_code, item.second.name);
+				return js::compare_string(country_or_code, item.second.name);
 			});
 
 		if (it != flag_data.end())
@@ -51,7 +51,7 @@ std::string CountryFlag::get(wil::zstring_view country_or_code)
 
 std::wstring CountryFlag::get(wil::zwstring_view country_or_code)
 {
-	const auto ucountry_or_code = from_wide(country_or_code);
+	const auto ucountry_or_code = js::from_wide(country_or_code);
 	const auto str = get(ucountry_or_code);
-	return to_wide(str);
+	return js::to_wide(str);
 }

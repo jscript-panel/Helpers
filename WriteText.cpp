@@ -142,7 +142,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, wil::zwstring_view text, float width, float height)
 {
-	return factory::dwrite->CreateTextLayout(text.data(), to_uint(text.length()), text_format, width, height, &text_layout);
+	return factory::dwrite->CreateTextLayout(text.data(), js::to_uint(text.length()), text_format, width, height, &text_layout);
 }
 
 template <typename T>

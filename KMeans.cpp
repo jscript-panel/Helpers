@@ -28,7 +28,7 @@ namespace KMeans
 	int Cluster::get_colour()
 	{
 		const auto c = RGB(get_colour_component(0), get_colour_component(1), get_colour_component(2));
-		return to_argb(c);
+		return js::to_argb(c);
 	}
 
 	size_t Cluster::get_total_points() const
@@ -151,7 +151,7 @@ namespace KMeans
 	{
 		static constexpr int colours_length = 200 * 200;
 		static const auto size = D2D1::SizeU(200U, 200U);
-		static const auto rect = to_WICRect(size);
+		static const auto rect = js::to_WICRect(size);
 
 		uint32_t data_size{};
 		uint8_t* data{};

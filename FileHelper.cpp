@@ -4,7 +4,7 @@
 namespace fs = std::filesystem;
 
 FileHelper::FileHelper(wil::zwstring_view path) : m_path(path.data()) {}
-FileHelper::FileHelper(wil::zstring_view path) : m_path(to_wide(path)) {}
+FileHelper::FileHelper(wil::zstring_view path) : m_path(js::to_wide(path)) {}
 
 #pragma region static
 bool FileHelper::rename(wil::zwstring_view from, wil::zwstring_view to)
@@ -27,7 +27,7 @@ uint32_t FileHelper::guess_codepage(wil::zstring_view content)
 	auto src = const_cast<char*>(content.data());
 	static constexpr int max_encodings = 1;
 	int encoding_count = max_encodings;
-	int size = to_int(content.length());
+	int size = js::to_int(content.length());
 	std::array<DetectEncodingInfo, max_encodings> encodings{};
 	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count)) return 0;
 
@@ -69,7 +69,7 @@ WStrings FileHelper::list_t(EntryType type)
 		}
 	}
 
-	sort_strings(paths);
+	js::sort_strings(paths);
 	return paths;
 }
 
@@ -153,7 +153,7 @@ bool FileHelper::write(wil::zstring_view content)
 
 bool FileHelper::write(wil::zwstring_view content)
 {
-	const std::string ucontent = from_wide(content);
+	const std::string ucontent = js::from_wide(content);
 	return write(ucontent);
 }
 
@@ -242,11 +242,11 @@ void FileHelper::read_wide(uint32_t codepage, std::wstring& content)
 
 		if (str.starts_with(UTF_8_BOM))
 		{
-			content = to_wide(str.substr(3));
+			content = js::to_wide(str.substr(3));
 		}
 		else if (codepage == CP_UTF8 || guess_codepage(str) == CP_UTF8)
 		{
-			content = to_wide(str);
+			content = js::to_wide(str);
 		}
 		else
 		{

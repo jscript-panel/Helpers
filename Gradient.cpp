@@ -1,14 +1,14 @@
 #include "stdafx.hpp"
-#include "GradientHelper.hpp"
+#include "Gradient.hpp"
 
 #pragma region static
-HRESULT GradientHelper::CheckTwoNumberArray(JSON& j)
+HRESULT Gradient::CheckTwoNumberArray(JSON& j)
 {
 	if (j.is_array() && j.size() == 2 && j[0].is_number() && j[1].is_number()) return S_OK;
 	return E_INVALIDARG;
 }
 
-JSON GradientHelper::Parse(wil::zwstring_view str)
+JSON Gradient::Parse(wil::zwstring_view str)
 {
 	auto j = JSONHelper::parse(str);
 
@@ -24,7 +24,7 @@ JSON GradientHelper::Parse(wil::zwstring_view str)
 	return JSON();
 }
 
-std::optional<D2D1_POINT_2F> GradientHelper::ToPoint(JSON& j)
+std::optional<D2D1_POINT_2F> Gradient::ToPoint(JSON& j)
 {
 	if FAILED(CheckTwoNumberArray(j)) return std::nullopt;
 
@@ -34,7 +34,7 @@ std::optional<D2D1_POINT_2F> GradientHelper::ToPoint(JSON& j)
 }
 #pragma endregion
 
-HRESULT GradientHelper::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D1GradientStopCollection>& collection)
+HRESULT Gradient::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D1GradientStopCollection>& collection)
 {
 	std::vector<D2D1_GRADIENT_STOP> stops;
 
@@ -44,14 +44,14 @@ HRESULT GradientHelper::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_
 
 		const auto pos = jstop[0].get<float>();
 		const auto colour = jstop[1].get<int64_t>();
-		const auto stop = D2D1::GradientStop(pos, to_colorf(colour));
+		const auto stop = D2D1::GradientStop(pos, js::to_colorf(colour));
 		stops.emplace_back(stop);
 	}
 
-	return m_context->CreateGradientStopCollection(stops.data(), to_uint(stops.size()), &collection);
+	return m_context->CreateGradientStopCollection(stops.data(), js::to_uint(stops.size()), &collection);
 }
 
-HRESULT GradientHelper::CreateLinearBrush(JSON& obj, float x, float y)
+HRESULT Gradient::CreateLinearBrush(JSON& obj, float x, float y)
 {
 	auto start = ToPoint(obj["Start"]);
 	auto end = ToPoint(obj["End"]);
@@ -80,7 +80,7 @@ HRESULT GradientHelper::CreateLinearBrush(JSON& obj, float x, float y)
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::CreateRadialBrush(JSON& obj, float x, float y)
+HRESULT Gradient::CreateRadialBrush(JSON& obj, float x, float y)
 {
 	auto centre = ToPoint(obj["Centre"]);
 	auto radius = ToPoint(obj["Radius"]);
@@ -108,7 +108,7 @@ HRESULT GradientHelper::CreateRadialBrush(JSON& obj, float x, float y)
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -131,7 +131,7 @@ HRESULT GradientHelper::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_widt
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -154,7 +154,7 @@ HRESULT GradientHelper::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::DrawRectangle(const D2D1_RECT_F& rect, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -177,7 +177,7 @@ HRESULT GradientHelper::DrawRectangle(const D2D1_RECT_F& rect, float line_width,
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, float line_width, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -200,7 +200,7 @@ HRESULT GradientHelper::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_re
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::FillEllipse(const D2D1_ELLIPSE& ellipse, wil::zwstring_view str)
+HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -223,7 +223,7 @@ HRESULT GradientHelper::FillEllipse(const D2D1_ELLIPSE& ellipse, wil::zwstring_v
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_view str)
+HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -246,7 +246,7 @@ HRESULT GradientHelper::FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_vie
 	return E_INVALIDARG;
 }
 
-HRESULT GradientHelper::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, wil::zwstring_view str)
+HRESULT Gradient::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, wil::zwstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -269,12 +269,12 @@ HRESULT GradientHelper::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_re
 	return E_INVALIDARG;
 }
 
-void GradientHelper::Init(ID2D1DeviceContext* context)
+void Gradient::Init(ID2D1DeviceContext* context)
 {
 	m_context = context;
 }
 
-void GradientHelper::Reset()
+void Gradient::Reset()
 {
 	m_linear_stop_string.clear();
 	m_radial_stop_string.clear();

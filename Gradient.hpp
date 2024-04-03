@@ -1,6 +1,6 @@
 #pragma once
 
-class GradientHelper
+class Gradient
 {
 public:
 	HRESULT DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, wil::zwstring_view str);

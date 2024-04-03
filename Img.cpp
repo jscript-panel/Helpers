@@ -1,5 +1,5 @@
 #include "stdafx.hpp"
-#include "ImageHelpers.hpp"
+#include "Img.hpp"
 
 #ifdef NDEBUG
 #pragma comment(lib, "ntdll.lib")
@@ -29,7 +29,13 @@ void destroy_resvg_font_options()
 }
 #endif
 
-HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT Img::check_stream_size(IStream* stream)
+{
+	if (get_stream_size(stream) > Component::max_image_size) return E_INVALIDARG;
+	return S_OK;
+}
+
+HRESULT Img::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
 	if (max_size == 0U) return S_OK;
 
@@ -46,13 +52,13 @@ HRESULT ImageHelpers::fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitm
 	const double dw = static_cast<double>(size.width);
 	const double dh = static_cast<double>(size.height);
 	const double s = std::min(dmax / dw, dmax / dh);
-	const uint32_t new_width = to_uint(dw * s);
-	const uint32_t new_height = to_uint(dh * s);
+	const uint32_t new_width = js::to_uint(dw * s);
+	const uint32_t new_height = js::to_uint(dh * s);
 
 	return resize(new_width, new_height, bitmap);
 }
 
-HRESULT ImageHelpers::istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT Img::istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
 	wil::com_ptr_t<IWICBitmapDecoder> decoder;
 	wil::com_ptr_t<IWICBitmapFrameDecode> frame_decode;
@@ -65,7 +71,7 @@ HRESULT ImageHelpers::istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitm
 	return S_OK;
 }
 
-HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t data_size, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT Img::libwebp_data_to_bitmap(const uint8_t* data, size_t data_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
 	WebPBitstreamFeatures bs;
 	if (WebPGetFeatures(data, data_size, &bs) == VP8_STATUS_OK && !bs.has_animation)
@@ -73,8 +79,8 @@ HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t data_si
 		auto webp = WebPDecodeBGRA(data, data_size, &bs.width, &bs.height);
 		if (webp)
 		{
-			const auto width = to_uint(bs.width);
-			const auto height = to_uint(bs.height);
+			const auto width = js::to_uint(bs.width);
+			const auto height = js::to_uint(bs.height);
 			const auto stride = width * 4U;
 			const auto size = stride * height;
 			const HRESULT hr = factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, stride, size, webp, &bitmap);
@@ -85,15 +91,22 @@ HRESULT ImageHelpers::libwebp_data_to_bitmap(const uint8_t* data, size_t data_si
 	return E_FAIL;
 }
 
-HRESULT ImageHelpers::libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT Img::libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
-	auto data = IStreamHelpers::to_album_art_data(stream);
+	auto data = AlbumArtStatic::istream_to_data(stream);
 	RETURN_HR_IF(E_FAIL, data.is_empty());
 	RETURN_IF_FAILED(libwebp_data_to_bitmap(static_cast<const uint8_t*>(data->data()), data->size(), bitmap));
 	return S_OK;
 }
 
-HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>& bitmap)
+HRESULT Img::path_to_istream(wil::zwstring_view path, wil::com_ptr_t<IStream>& stream)
+{
+	RETURN_IF_FAILED(SHCreateStreamOnFileEx(path.data(), STGM_READ | STGM_SHARE_DENY_WRITE, GENERIC_READ, FALSE, nullptr, &stream));
+	RETURN_IF_FAILED(check_stream_size(stream.get()));
+	return S_OK;
+}
+
+HRESULT Img::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>& bitmap)
 {
 	wil::com_ptr_t<IWICBitmapScaler> scaler;
 	RETURN_IF_FAILED(factory::imaging->CreateBitmapScaler(&scaler));
@@ -102,9 +115,9 @@ HRESULT ImageHelpers::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWI
 	return S_OK;
 }
 
-HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
+HRESULT Img::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 {
-	const string8 upath = from_wide(path);
+	const string8 upath = js::from_wide(path);
 	album_art_data_ptr data;
 
 	RETURN_IF_FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data));
@@ -120,17 +133,17 @@ HRESULT ImageHelpers::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 	return E_FAIL;
 }
 
-IJSImage* ImageHelpers::create(uint32_t width, uint32_t height)
+IJSImage* Img::create(uint32_t width, uint32_t height)
 {
 	wil::com_ptr_t<IWICBitmap> bitmap;
 	if FAILED(factory::imaging->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &bitmap)) return nullptr;
 	return new ComObject<JSImage>(bitmap);
 }
 
-IJSImage* ImageHelpers::path_to_image(wil::zwstring_view path, uint32_t max_size)
+IJSImage* Img::path_to_image(wil::zwstring_view path, uint32_t max_size)
 {
 	wil::com_ptr_t<IStream> stream;
-	if FAILED(IStreamHelpers::create_from_path(path, stream)) return nullptr;
+	if FAILED(path_to_istream(path, stream)) return nullptr;
 
 	wil::com_ptr_t<IWICBitmap> bitmap;
 	HRESULT hr = istream_to_bitmap(stream.get(), bitmap);
@@ -140,13 +153,13 @@ IJSImage* ImageHelpers::path_to_image(wil::zwstring_view path, uint32_t max_size
 	return new ComObject<JSImage>(bitmap, path);
 }
 
-IJSImage* ImageHelpers::svg_to_image([[maybe_unused]] wil::zwstring_view path_or_xml, [[maybe_unused]] float max_width)
+IJSImage* Img::svg_to_image([[maybe_unused]] wil::zwstring_view path_or_xml, [[maybe_unused]] float max_width)
 {
 #ifdef NDEBUG
 	std::string xml;
 	if (path_or_xml.contains(L'<'))
 	{
-		xml = from_wide(path_or_xml);
+		xml = js::from_wide(path_or_xml);
 	}
 	else
 	{
@@ -178,14 +191,14 @@ IJSImage* ImageHelpers::svg_to_image([[maybe_unused]] wil::zwstring_view path_or
 
 		if (max_width == 0.f)
 		{
-			width = to_uint(svg_size.width);
-			height = to_uint(svg_size.height);
+			width = js::to_uint(svg_size.width);
+			height = js::to_uint(svg_size.height);
 		}
 		else
 		{
 			ratio = max_width / svg_size.width;
-			width = to_uint(max_width);
-			height = to_uint(svg_size.height / svg_size.width * max_width);
+			width = js::to_uint(max_width);
+			height = js::to_uint(svg_size.height / svg_size.width * max_width);
 		}
 
 		const auto transform = resvg_transform(ratio, 0.f, 0.f, ratio, 0.f, 0.f);
@@ -205,4 +218,11 @@ IJSImage* ImageHelpers::svg_to_image([[maybe_unused]] wil::zwstring_view path_or
 	}
 #endif
 	return nullptr;
+}
+
+uint32_t Img::get_stream_size(IStream* stream)
+{
+	STATSTG stats{};
+	if FAILED(stream->Stat(&stats, STATFLAG_DEFAULT)) return UINT_MAX;
+	return stats.cbSize.LowPart;
 }
