@@ -27,7 +27,7 @@ HRESULT WriteText::apply_alignment_and_trimming(IDWriteTextFormat* text_format, 
 HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE_TEXT_RANGE range)
 {
 	{
-		const auto tmp = JSONHelper::to_wstring(font["Name"]);
+		const auto tmp = js::json_to_wstring(font["Name"]);
 		if (tmp.length())
 		{
 			RETURN_IF_FAILED(text_layout->SetFontFamilyName(tmp.data(), range));
@@ -83,7 +83,7 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& fonts)
 	for (auto&& font : fonts)
 	{
 		DWRITE_TEXT_RANGE range{};
-		RETURN_IF_FAILED(JSONHelper::to_dwrite_text_range(font, range));
+		RETURN_IF_FAILED(to_range(font, range));
 		RETURN_IF_FAILED(apply_font(text_layout, font, range));
 	}
 
@@ -97,7 +97,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 		return create_format(text_format);
 	}
 
-	std::wstring font_name = JSONHelper::to_wstring(font["Name"]);
+	std::wstring font_name = js::json_to_wstring(font["Name"]);
 	if (font_name.empty()) font_name = Component::DefaultFont.data();
 
 	float font_size = 16.f;
@@ -143,6 +143,17 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, wil::zwstring_view text, float width, float height)
 {
 	return factory::dwrite->CreateTextLayout(text.data(), js::to_uint(text.length()), text_format, width, height, &text_layout);
+}
+
+HRESULT WriteText::to_range(JSON& obj, DWRITE_TEXT_RANGE& range)
+{
+	if (obj.is_object() && obj["Start"].is_number_unsigned() && obj["Length"].is_number_unsigned())
+	{
+		range.startPosition = obj["Start"].get<uint32_t>();
+		range.length = obj["Length"].get<uint32_t>();
+		return S_OK;
+	}
+	return E_INVALIDARG;
 }
 
 template <typename T>

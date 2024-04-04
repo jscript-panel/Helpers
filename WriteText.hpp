@@ -9,6 +9,7 @@ public:
 	static HRESULT create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, JSON& font);
 	static HRESULT create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, wil::zwstring_view name = Component::DefaultFont, float size = 16.f, uint32_t weight = 400U, uint32_t style = 0U, uint32_t stretch = 5U);
 	static HRESULT create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, wil::zwstring_view text, float width = FLT_MAX, float height = FLT_MAX);
+	static HRESULT to_range(JSON& obj, DWRITE_TEXT_RANGE& range);
 
 private:
 	static BOOL get_BOOL(JSON& obj);

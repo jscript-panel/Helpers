@@ -5,7 +5,7 @@ CountryFlag::FlagData CountryFlag::get_flag_data()
 {
 	FlagData flag_data;
 	const auto str = Component::get_resource_text(IDR_COUNTRIES_JSON);
-	const auto j = JSONHelper::parse(str);
+	const auto j = js::json_parse(str);
 
 	for (const auto& [key, value] : j.items())
 	{

@@ -10,7 +10,7 @@ HRESULT Gradient::CheckTwoNumberArray(JSON& j)
 
 JSON Gradient::Parse(wil::zwstring_view str)
 {
-	auto j = JSONHelper::parse(str);
+	auto j = js::json_parse(str);
 
 	if (j.is_object())
 	{
