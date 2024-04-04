@@ -95,6 +95,12 @@ namespace js
 		return pfc::utf8FromWide(str.data(), str.length()).get_ptr();
 	}
 
+	static std::string get_resource_text(int id)
+	{
+		const auto res = uLoadResource(core_api::get_my_instance(), uMAKEINTRESOURCE(id), "TEXT");
+		return std::string(static_cast<const char*>(res->GetPointer()), res->GetSize());
+	}
+
 	static std::string print_guid(const GUID& g)
 	{
 		return fmt::format("{{{}}}", pfc::print_guid(g).get_ptr());
