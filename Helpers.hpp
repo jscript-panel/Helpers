@@ -1,5 +1,6 @@
 #pragma once
 
+using VariantArgs = std::vector<_variant_t>;
 using StringMap = std::map<std::string, std::string>;
 using StringPair = std::pair<std::string, std::string>;
 using Strings = std::vector<std::string>;
@@ -18,6 +19,19 @@ namespace js
 {
 	template <typename T>
 	concept IsNum = std::integral<T> || std::floating_point<T>;
+
+	template <typename T>
+	static pfc::array_t<T> pfc_array(size_t count)
+	{
+		pfc::array_t<T> arr;
+		arr.set_size(count);
+		return arr;
+	}
+
+	static void** arg_helper(auto arg)
+	{
+		return reinterpret_cast<void**>(arg);
+	}
 
 	static COLORREF to_colorref(int colour)
 	{
