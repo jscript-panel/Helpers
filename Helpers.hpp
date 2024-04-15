@@ -106,6 +106,19 @@ namespace js
 		return fmt::format("{{{}}}", pfc::print_guid(g).get_ptr());
 	}
 
+	static std::string strip_trailing_periods(wil::zstring_view str)
+	{
+		size_t len = str.length();
+
+		for (const char c : str | std::views::reverse)
+		{
+			if (c != '.') break;
+			len--;
+		}
+
+		return std::string(str.substr(size_t{}, len));
+	}
+
 	static std::wstring to_wide(std::string_view str)
 	{
 		return pfc::wideFromUTF8(str.data(), str.length()).c_str();
