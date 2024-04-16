@@ -17,6 +17,7 @@ public:
 	bool is_folder();
 	bool remove();
 	bool remove_folder_recursive(uint32_t options);
+	bool write(const void* data, size_t size);
 	bool write(wil::zstring_view content);
 	bool write(wil::zwstring_view content);
 	std::string read();

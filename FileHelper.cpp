@@ -140,14 +140,29 @@ bool FileHelper::remove_folder_recursive(uint32_t options)
 	return false;
 }
 
+bool FileHelper::write(const void* data, size_t size)
+{
+	auto f = std::ofstream(m_path, std::ios::binary);
+
+	if (f.is_open())
+	{
+		f.write((char*)data, size);
+		return true;
+	}
+
+	return false;
+}
+
 bool FileHelper::write(wil::zstring_view content)
 {
 	auto f = std::ofstream(m_path, std::ios::binary);
+
 	if (f.is_open())
 	{
 		f << content;
 		return true;
 	}
+
 	return false;
 }
 

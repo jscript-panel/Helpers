@@ -117,18 +117,13 @@ HRESULT Img::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>&
 
 HRESULT Img::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
 {
-	const string8 upath = js::from_wide(path);
 	album_art_data_ptr data;
-
 	RETURN_IF_FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data));
 
-	try
+	if (FileHelper(path).write(data->get_ptr(), data->get_size()))
 	{
-		auto f = fileOpenWriteNew(upath, fb2k::noAbort, 0.5);
-		f->write(data->get_ptr(), data->get_size(), fb2k::noAbort);
 		return S_OK;
 	}
-	catch (...) {}
 
 	return E_FAIL;
 }
