@@ -67,9 +67,10 @@ WStrings FileHelper::list_t(EntryType type)
 				paths.emplace_back(entry.path().native() + fs::path::preferred_separator);
 			}
 		}
+
+		js::sort_strings(paths);
 	}
 
-	js::sort_strings(paths);
 	return paths;
 }
 
@@ -146,8 +147,7 @@ bool FileHelper::write(const void* data, size_t size)
 
 	if (f.is_open())
 	{
-		f.write((char*)data, size);
-		return true;
+		return f.write((char*)data, size).good();
 	}
 
 	return false;
@@ -159,8 +159,7 @@ bool FileHelper::write(wil::zstring_view content)
 
 	if (f.is_open())
 	{
-		f << content;
-		return true;
+		return f.write(content.data(), content.length()).good();
 	}
 
 	return false;
