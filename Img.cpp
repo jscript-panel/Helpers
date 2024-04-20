@@ -115,19 +115,6 @@ HRESULT Img::resize(uint32_t width, uint32_t height, wil::com_ptr_t<IWICBitmap>&
 	return S_OK;
 }
 
-HRESULT Img::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
-{
-	album_art_data_ptr data;
-	RETURN_IF_FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data));
-
-	if (FileHelper(path).write(data->get_ptr(), data->get_size()))
-	{
-		return S_OK;
-	}
-
-	return E_FAIL;
-}
-
 IJSImage* Img::create(uint32_t width, uint32_t height)
 {
 	wil::com_ptr_t<IWICBitmap> bitmap;
@@ -213,6 +200,18 @@ IJSImage* Img::svg_to_image([[maybe_unused]] wil::zwstring_view path_or_xml, [[m
 	}
 #endif
 	return nullptr;
+}
+
+bool Img::save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
+{
+	album_art_data_ptr data;
+
+	if FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data))
+	{
+		return false;
+	}
+
+	return FileHelper(path).write(data->get_ptr(), data->get_size());
 }
 
 uint32_t Img::get_stream_size(IStream* stream)
