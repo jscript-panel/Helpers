@@ -98,7 +98,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 	}
 
 	std::wstring font_name = js::json_to_wstring(font["Name"]);
-	if (font_name.empty()) font_name = Component::DefaultFont.data();
+	if (font_name.empty()) font_name = factory::DefaultFont.data();
 
 	float font_size = 16.f;
 	DWRITE_FONT_WEIGHT font_weight = DWRITE_FONT_WEIGHT_NORMAL;
