@@ -1,7 +1,7 @@
 #include "stdafx.hpp"
 #include "Image.hpp"
 
-#ifdef NDEBUG
+#if ENABLE_RESVG
 #pragma comment(lib, "ntdll.lib")
 #pragma comment(lib, "Userenv.lib")
 
@@ -139,7 +139,7 @@ namespace js
 
 	IJSImage* svg_to_image([[maybe_unused]] wil::zwstring_view path_or_xml, [[maybe_unused]] float max_width)
 	{
-#ifdef NDEBUG
+#if ENABLE_RESVG
 		std::string xml;
 		if (path_or_xml.contains(L'<'))
 		{
