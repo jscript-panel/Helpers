@@ -1,163 +1,154 @@
 #include "stdafx.hpp"
 #include "WriteText.hpp"
 
-BOOL WriteText::get_BOOL(JSON& obj)
+DWRITE_TEXT_RANGE WriteText::to_range(size_t start, size_t length)
 {
-	return obj.get<bool>() ? TRUE : FALSE;
+	DWRITE_TEXT_RANGE range{};
+	range.startPosition = js::to_uint(start);
+	range.length = js::to_uint(length);
+	return range;
 }
 
-HRESULT WriteText::apply_alignment_and_trimming(IDWriteTextFormat* text_format, uint32_t text_alignment, uint32_t paragraph_alignment, uint32_t word_wrapping, uint32_t trimming_granularity)
+HRESULT WriteText::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool verify_colour)
 {
-	const auto dtext_alignment = static_cast<DWRITE_TEXT_ALIGNMENT>(text_alignment);
-	const auto dparagraph_alignment = static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(paragraph_alignment);
-	const auto dword_wrapping = static_cast<DWRITE_WORD_WRAPPING>(word_wrapping);
+	if (obj.is_object() && obj["Start"].is_number_unsigned() && obj["Length"].is_number_unsigned())
+	{
+		RETURN_HR_IF(E_INVALIDARG, verify_colour && !obj["Colour"].is_number());
 
-	DWRITE_TRIMMING trimming{};
-	trimming.granularity = static_cast<DWRITE_TRIMMING_GRANULARITY>(trimming_granularity);
+		range.startPosition = obj["Start"].get<uint32_t>();
+		range.length = obj["Length"].get<uint32_t>();
+		return S_OK;
+	}
+
+	return E_INVALIDARG;
+}
+
+HRESULT WriteText::apply_format_params(IDWriteTextFormat* text_format, const FormatParams& params)
+{
 	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
 
-	RETURN_IF_FAILED(text_format->SetTextAlignment(dtext_alignment));
-	RETURN_IF_FAILED(text_format->SetParagraphAlignment(dparagraph_alignment));
-	RETURN_IF_FAILED(text_format->SetWordWrapping(dword_wrapping));
+	RETURN_IF_FAILED(text_format->SetTextAlignment(params.m_text_alignment));
+	RETURN_IF_FAILED(text_format->SetParagraphAlignment(params.m_paragraph_alignment));
+	RETURN_IF_FAILED(text_format->SetWordWrapping(params.m_word_wrapping));
 	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format, &trimmingSign));
-	RETURN_IF_FAILED(text_format->SetTrimming(&trimming, trimmingSign.get()));
+	RETURN_IF_FAILED(text_format->SetTrimming(&params.m_trimming, trimmingSign.get()));
 	return S_OK;
 }
 
-HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, JSON& font, DWRITE_TEXT_RANGE range)
+HRESULT WriteText::apply_colour(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, const D2D1_COLOR_F& colour, const DWRITE_TEXT_RANGE& range)
 {
+	wil::com_ptr_t<ID2D1SolidColorBrush> brush;
+	RETURN_IF_FAILED(context->CreateSolidColorBrush(colour, &brush));
+	RETURN_IF_FAILED(text_layout->SetDrawingEffect(brush.get(), range));
+	return S_OK;
+}
+
+HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& colours)
+{
+	DWRITE_TEXT_RANGE range{};
+
+	for (auto&& colour : colours)
 	{
-		const auto tmp = js::json_to_wstring(font["Name"]);
-		if (tmp.length())
+		RETURN_IF_FAILED(to_range(colour, range, true));
+
+		const auto colourf = js::to_colorf(colour["Colour"]);
+		RETURN_IF_FAILED(apply_colour(text_layout, context, colourf, range));
+	}
+
+	return S_OK;
+}
+
+HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, std::wstring_view text)
+{
+	size_t start = text.find(ETX);
+	const auto parts = js::split_string(text, ETX);
+
+	for (size_t i = 1; i < parts.size(); i += 2)
+	{
+		const auto& colour_part = parts[i];
+		const auto& text_part = parts[i + 1];
+		if (text_part.empty()) continue;
+
+		const auto range = to_range(start, text_part.length());
+		start += range.length;
+
+		if (!colour_part.empty())
 		{
-			RETURN_IF_FAILED(text_layout->SetFontFamilyName(tmp.data(), range));
+			RETURN_IF_FAILED(apply_colour(text_layout, context, js::to_colorf(colour_part), range));
 		}
 	}
 
-	auto& size = font["Size"];
-	if (size.is_number())
-	{
-		const auto tmp = get<float>(size);
-		RETURN_IF_FAILED(text_layout->SetFontSize(tmp, range));
-	}
-
-	auto& weight = font["Weight"];
-	if (weight.is_number_unsigned())
-	{
-		const auto tmp = get<DWRITE_FONT_WEIGHT>(weight);
-		RETURN_IF_FAILED(text_layout->SetFontWeight(tmp, range));
-	}
-
-	auto& style = font["Style"];
-	if (style.is_number_unsigned())
-	{
-		const auto tmp = get<DWRITE_FONT_STYLE>(style);
-		RETURN_IF_FAILED(text_layout->SetFontStyle(tmp, range));
-	}
-
-	auto& stretch = font["Stretch"];
-	if (stretch.is_number_unsigned())
-	{
-		const auto tmp = get<DWRITE_FONT_STRETCH>(stretch);
-		RETURN_IF_FAILED(text_layout->SetFontStretch(tmp, range));
-	}
-
-	auto& strikethrough = font["Strikethrough"];
-	if (strikethrough.is_boolean())
-	{
-		const auto tmp = get_BOOL(strikethrough);
-		RETURN_IF_FAILED(text_layout->SetStrikethrough(tmp, range));
-	}
-
-	auto& underline = font["Underline"];
-	if (underline.is_boolean())
-	{
-		const auto tmp = get_BOOL(underline);
-		RETURN_IF_FAILED(text_layout->SetUnderline(tmp, range));
-	}
 	return S_OK;
 }
 
-HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& fonts)
+HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, const Font& font, const DWRITE_TEXT_RANGE& range)
 {
-	for (auto&& font : fonts)
+	RETURN_IF_FAILED(text_layout->SetFontFamilyName(font.m_name.data(), range));
+	RETURN_IF_FAILED(text_layout->SetFontSize(font.m_size, range));
+	RETURN_IF_FAILED(text_layout->SetFontWeight(font.m_weight, range));
+	RETURN_IF_FAILED(text_layout->SetFontStyle(font.m_style, range));
+	RETURN_IF_FAILED(text_layout->SetFontStretch(font.m_stretch, range));
+	RETURN_IF_FAILED(text_layout->SetStrikethrough(font.m_strikethrough, range));
+	RETURN_IF_FAILED(text_layout->SetUnderline(font.m_underline, range));
+	return S_OK;
+}
+
+HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& jfonts)
+{
+	for (auto&& jfont : jfonts)
 	{
 		DWRITE_TEXT_RANGE range{};
-		RETURN_IF_FAILED(to_range(font, range));
+		const auto font = Font(jfont);
+		RETURN_IF_FAILED(to_range(jfont, range));
 		RETURN_IF_FAILED(apply_font(text_layout, font, range));
 	}
 
 	return S_OK;
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, JSON& font)
+HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view text)
 {
-	if (!font.is_object())
+	size_t start = text.find(BEL);
+	const auto parts = js::split_string(text, BEL);
+
+	for (size_t i = 1; i < parts.size(); i += 2)
 	{
-		return create_format(text_format);
+		const auto& font_part = parts[i];
+		const auto& text_part = parts[i + 1];
+		if (text_part.empty()) continue;
+
+		const auto range = to_range(start, text_part.length());
+		start += range.length;
+
+		if (!font_part.empty())
+		{
+			const auto font = Font(font_part);
+			RETURN_IF_FAILED(apply_font(text_layout, font, range));
+		}
 	}
 
-	std::wstring font_name = js::json_to_wstring(font["Name"]);
-	if (font_name.empty()) font_name = factory::DefaultFont.data();
-
-	float font_size = 16.f;
-	DWRITE_FONT_WEIGHT font_weight = DWRITE_FONT_WEIGHT_NORMAL;
-	DWRITE_FONT_STYLE font_style = DWRITE_FONT_STYLE_NORMAL;
-	DWRITE_FONT_STRETCH font_stretch = DWRITE_FONT_STRETCH_NORMAL;
-
-	auto& size = font["Size"];
-	if (size.is_number())
-	{
-		font_size = get<float>(size);
-	}
-
-	auto& weight = font["Weight"];
-	if (weight.is_number_unsigned())
-	{
-		font_weight = get<DWRITE_FONT_WEIGHT>(weight);
-	}
-
-	auto& style = font["Style"];
-	if (style.is_number_unsigned())
-	{
-		font_style = get<DWRITE_FONT_STYLE>(style);
-	}
-
-	auto& stretch = font["Stretch"];
-	if (stretch.is_number_unsigned())
-	{
-		font_stretch = get<DWRITE_FONT_STRETCH>(stretch);
-	}
-
-	return factory::dwrite->CreateTextFormat(font_name.data(), nullptr, font_weight, font_style, font_stretch, font_size, L"", &text_format);
+	return S_OK;
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, std::wstring_view name, float size, uint32_t weight, uint32_t style, uint32_t stretch)
+HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const Font& font)
 {
-	const auto dweight = static_cast<DWRITE_FONT_WEIGHT>(weight);
-	const auto dstyle = static_cast<DWRITE_FONT_STYLE>(style);
-	const auto dstretch = static_cast<DWRITE_FONT_STRETCH>(stretch);
-	return factory::dwrite->CreateTextFormat(name.data(), nullptr, dweight, dstyle, dstretch, size, L"", &text_format);
+	return factory::dwrite->CreateTextFormat(font.m_name.data(), nullptr, font.m_weight, font.m_style, font.m_stretch, font.m_size, L"", &text_format);
+}
+
+HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const Font& font, const FormatParams& params)
+{
+	RETURN_IF_FAILED(create_format(text_format, font));
+	RETURN_IF_FAILED(apply_format_params(text_format.get(), params));
+	return S_OK;
 }
 
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, std::wstring_view text, float width, float height)
 {
-	return factory::dwrite->CreateTextLayout(text.data(), js::to_uint(text.length()), text_format, width, height, &text_layout);
-}
-
-HRESULT WriteText::to_range(JSON& obj, DWRITE_TEXT_RANGE& range)
-{
-	if (obj.is_object() && obj["Start"].is_number_unsigned() && obj["Length"].is_number_unsigned())
+	if (text.contains(BEL) || text.contains(ETX))
 	{
-		range.startPosition = obj["Start"].get<uint32_t>();
-		range.length = obj["Length"].get<uint32_t>();
-		return S_OK;
+		auto clean = js::remove_marks(text);
+		return factory::dwrite->CreateTextLayout(clean.data(), js::to_uint(clean.length()), text_format, width, height, &text_layout);
 	}
-	return E_INVALIDARG;
-}
 
-template <typename T>
-T WriteText::get(JSON& obj)
-{
-	return static_cast<T>(obj.get<uint32_t>());
+	return factory::dwrite->CreateTextLayout(text.data(), js::to_uint(text.length()), text_format, width, height, &text_layout);
 }
