@@ -43,8 +43,8 @@ HRESULT Gradient::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D
 		RETURN_IF_FAILED(CheckTwoNumberArray(jstop));
 
 		const auto pos = jstop[0].get<float>();
-		const auto colour = jstop[1].get<int64_t>();
-		const auto stop = D2D1::GradientStop(pos, js::to_colorf(colour));
+		const auto colour = js::to_colorf(jstop[1]);
+		const auto stop = D2D1::GradientStop(pos, colour);
 		stops.emplace_back(stop);
 	}
 
