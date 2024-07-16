@@ -19,7 +19,7 @@ CountryFlag::FlagData CountryFlag::get_flag_data()
 	return flag_data;
 }
 
-std::string CountryFlag::get(wil::zstring_view country_or_code)
+std::string CountryFlag::get(std::string_view country_or_code)
 {
 	static const auto flag_data = get_flag_data();
 
@@ -49,7 +49,7 @@ std::string CountryFlag::get(wil::zstring_view country_or_code)
 	return std::string();
 }
 
-std::wstring CountryFlag::get(wil::zwstring_view country_or_code)
+std::wstring CountryFlag::get(std::wstring_view country_or_code)
 {
 	const auto ucountry_or_code = js::from_wide(country_or_code);
 	const auto str = get(ucountry_or_code);

@@ -15,7 +15,7 @@ inline pfc::string_base& operator<<(pfc::string_base& fmt, const std::string& so
 	return fmt;
 }
 
-static constexpr wil::zstring_view CRLF = "\r\n";
+static constexpr std::string_view CRLF = "\r\n";
 
 namespace js
 {
@@ -66,12 +66,12 @@ namespace js
 		return b ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 
-	static bool compare_string(wil::zstring_view a, wil::zstring_view b)
+	static bool compare_string(std::string_view a, std::string_view b)
 	{
 		return stricmp_utf8(a.data(), b.data()) == 0;
 	}
 
-	static bool compare_string(wil::zwstring_view a, wil::zwstring_view b)
+	static bool compare_string(std::wstring_view a, std::wstring_view b)
 	{
 		return _wcsicmp(a.data(), b.data()) == 0;
 	}
@@ -112,7 +112,7 @@ namespace js
 		return fmt::format("{{{}}}", pfc::print_guid(g).get_ptr());
 	}
 
-	static std::string strip_trailing_periods(wil::zstring_view str)
+	static std::string strip_trailing_periods(std::string_view str)
 	{
 		size_t len = str.length();
 
@@ -130,7 +130,7 @@ namespace js
 		return pfc::wideFromUTF8(str.data(), str.length()).c_str();
 	}
 
-	static std::wstring wdisplay_path(wil::zstring_view path)
+	static std::wstring wdisplay_path(std::string_view path)
 	{
 		string8 tmp;
 		filesystem::g_get_display_path(path.data(), tmp);
@@ -188,12 +188,12 @@ namespace js
 		return to_int(c);
 	}
 
-	static JSON json_parse(wil::zstring_view str)
+	static JSON json_parse(std::string_view str)
 	{
 		return JSON::parse(str, nullptr, false);
 	}
 
-	static JSON json_parse(wil::zwstring_view str)
+	static JSON json_parse(std::wstring_view str)
 	{
 		const auto ustr = from_wide(str);
 		return json_parse(ustr);

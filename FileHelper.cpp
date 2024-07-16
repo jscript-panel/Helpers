@@ -3,11 +3,11 @@
 
 namespace fs = std::filesystem;
 
-FileHelper::FileHelper(wil::zwstring_view path) : m_path(path.data()) {}
-FileHelper::FileHelper(wil::zstring_view path) : m_path(js::to_wide(path)) {}
+FileHelper::FileHelper(std::wstring_view path) : m_path(path.data()) {}
+FileHelper::FileHelper(std::string_view path) : m_path(js::to_wide(path)) {}
 
 #pragma region static
-bool FileHelper::rename(wil::zwstring_view from, wil::zwstring_view to)
+bool FileHelper::rename(std::wstring_view from, std::wstring_view to)
 {
 	const auto fs_from = fs::path(from.data());
 	const auto fs_to = fs::path(to.data());
@@ -17,7 +17,7 @@ bool FileHelper::rename(wil::zwstring_view from, wil::zwstring_view to)
 	return ec.value() == 0;
 }
 
-uint32_t FileHelper::guess_codepage(wil::zstring_view content)
+uint32_t FileHelper::guess_codepage(std::string_view content)
 {
 	if (content.empty()) return 0;
 
@@ -74,7 +74,7 @@ WStrings FileHelper::list_t(EntryType type)
 	return paths;
 }
 
-bool FileHelper::copy_file(wil::zwstring_view to, bool overwrite)
+bool FileHelper::copy_file(std::wstring_view to, bool overwrite)
 {
 	if (is_file())
 	{
@@ -89,7 +89,7 @@ bool FileHelper::copy_file(wil::zwstring_view to, bool overwrite)
 	return false;
 }
 
-bool FileHelper::copy_folder(wil::zwstring_view to, bool overwrite, bool recur)
+bool FileHelper::copy_folder(std::wstring_view to, bool overwrite, bool recur)
 {
 	if (is_folder())
 	{
@@ -153,7 +153,7 @@ bool FileHelper::write(const void* data, size_t size)
 	return false;
 }
 
-bool FileHelper::write(wil::zstring_view content)
+bool FileHelper::write(std::string_view content)
 {
 	auto f = std::ofstream(m_path, std::ios::binary);
 
@@ -165,7 +165,7 @@ bool FileHelper::write(wil::zstring_view content)
 	return false;
 }
 
-bool FileHelper::write(wil::zwstring_view content)
+bool FileHelper::write(std::wstring_view content)
 {
 	const std::string ucontent = js::from_wide(content);
 	return write(ucontent);

@@ -101,7 +101,7 @@ namespace js
 		return S_OK;
 	}
 
-	HRESULT path_to_istream(wil::zwstring_view path, wil::com_ptr_t<IStream>& stream)
+	HRESULT path_to_istream(std::wstring_view path, wil::com_ptr_t<IStream>& stream)
 	{
 		RETURN_IF_FAILED(SHCreateStreamOnFileEx(path.data(), STGM_READ | STGM_SHARE_DENY_WRITE, GENERIC_READ, FALSE, nullptr, &stream));
 		RETURN_IF_FAILED(check_stream_size(stream.get()));
@@ -124,7 +124,7 @@ namespace js
 		return new ComObject<JSImage>(bitmap);
 	}
 
-	IJSImage* path_to_image(wil::zwstring_view path, uint32_t max_size)
+	IJSImage* path_to_image(std::wstring_view path, uint32_t max_size)
 	{
 		wil::com_ptr_t<IStream> stream;
 		if FAILED(path_to_istream(path, stream)) return nullptr;
@@ -137,7 +137,7 @@ namespace js
 		return new ComObject<JSImage>(bitmap, path);
 	}
 
-	IJSImage* svg_to_image([[maybe_unused]] wil::zwstring_view path_or_xml, [[maybe_unused]] float max_width)
+	IJSImage* svg_to_image([[maybe_unused]] std::wstring_view path_or_xml, [[maybe_unused]] float max_width)
 	{
 #if ENABLE_RESVG
 		std::string xml;
@@ -204,7 +204,7 @@ namespace js
 		return nullptr;
 	}
 
-	bool save_as_jpg(IWICBitmap* bitmap, wil::zwstring_view path)
+	bool save_as_jpg(IWICBitmap* bitmap, std::wstring_view path)
 	{
 		album_art_data_ptr data;
 

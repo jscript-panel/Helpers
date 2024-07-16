@@ -8,7 +8,7 @@ HRESULT Gradient::CheckTwoNumberArray(JSON& j)
 	return E_INVALIDARG;
 }
 
-JSON Gradient::Parse(wil::zwstring_view str)
+JSON Gradient::Parse(std::wstring_view str)
 {
 	auto j = js::json_parse(str);
 
@@ -108,7 +108,7 @@ HRESULT Gradient::CreateRadialBrush(JSON& obj, float x, float y)
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -131,7 +131,7 @@ HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, wil
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -154,7 +154,7 @@ HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, flo
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -177,7 +177,7 @@ HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, wil::
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, float line_width, wil::zwstring_view str)
+HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -200,7 +200,7 @@ HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, fl
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, wil::zwstring_view str)
+HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -223,7 +223,7 @@ HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, wil::zwstring_view st
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_view str)
+HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;
@@ -246,7 +246,7 @@ HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, wil::zwstring_view str)
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, wil::zwstring_view str)
+HRESULT Gradient::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, std::wstring_view str)
 {
 	auto j = Parse(str);
 	if (j.is_null()) return E_INVALIDARG;

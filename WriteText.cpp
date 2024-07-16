@@ -132,7 +132,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 	return factory::dwrite->CreateTextFormat(font_name.data(), nullptr, font_weight, font_style, font_stretch, font_size, L"", &text_format);
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, wil::zwstring_view name, float size, uint32_t weight, uint32_t style, uint32_t stretch)
+HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, std::wstring_view name, float size, uint32_t weight, uint32_t style, uint32_t stretch)
 {
 	const auto dweight = static_cast<DWRITE_FONT_WEIGHT>(weight);
 	const auto dstyle = static_cast<DWRITE_FONT_STYLE>(style);
@@ -140,7 +140,7 @@ HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format,
 	return factory::dwrite->CreateTextFormat(name.data(), nullptr, dweight, dstyle, dstretch, size, L"", &text_format);
 }
 
-HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, wil::zwstring_view text, float width, float height)
+HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, std::wstring_view text, float width, float height)
 {
 	return factory::dwrite->CreateTextLayout(text.data(), js::to_uint(text.length()), text_format, width, height, &text_layout);
 }
