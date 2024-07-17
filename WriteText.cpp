@@ -23,18 +23,6 @@ HRESULT WriteText::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool verify_col
 	return E_INVALIDARG;
 }
 
-HRESULT WriteText::apply_format_params(IDWriteTextFormat* text_format, const FormatParams& params)
-{
-	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
-
-	RETURN_IF_FAILED(text_format->SetTextAlignment(params.m_text_alignment));
-	RETURN_IF_FAILED(text_format->SetParagraphAlignment(params.m_paragraph_alignment));
-	RETURN_IF_FAILED(text_format->SetWordWrapping(params.m_word_wrapping));
-	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format, &trimmingSign));
-	RETURN_IF_FAILED(text_format->SetTrimming(&params.m_trimming, trimmingSign.get()));
-	return S_OK;
-}
-
 HRESULT WriteText::apply_colour(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, const D2D1_COLOR_F& colour, const DWRITE_TEXT_RANGE& range)
 {
 	wil::com_ptr_t<ID2D1SolidColorBrush> brush;
@@ -130,25 +118,34 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view
 	return S_OK;
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const Font& font)
-{
-	return factory::dwrite->CreateTextFormat(font.m_name.data(), nullptr, font.m_weight, font.m_style, font.m_stretch, font.m_size, L"", &text_format);
-}
-
 HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const Font& font, const FormatParams& params)
 {
-	RETURN_IF_FAILED(create_format(text_format, font));
-	RETURN_IF_FAILED(apply_format_params(text_format.get(), params));
+	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
+
+	RETURN_IF_FAILED(factory::dwrite->CreateTextFormat(font.m_name.data(), nullptr, font.m_weight, font.m_style, font.m_stretch, font.m_size, L"", &text_format));
+	RETURN_IF_FAILED(text_format->SetTextAlignment(params.m_text_alignment));
+	RETURN_IF_FAILED(text_format->SetParagraphAlignment(params.m_paragraph_alignment));
+	RETURN_IF_FAILED(text_format->SetWordWrapping(params.m_word_wrapping));
+	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format.get(), &trimmingSign));
+	RETURN_IF_FAILED(text_format->SetTrimming(&params.m_trimming, trimmingSign.get()));
 	return S_OK;
 }
 
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, std::wstring_view text, float width, float height)
 {
+	uint32_t length{};
+
 	if (text.contains(BEL) || text.contains(ETX))
 	{
 		auto clean = js::remove_marks(text);
-		return factory::dwrite->CreateTextLayout(clean.data(), js::to_uint(clean.length()), text_format, width, height, &text_layout);
+		length = js::to_uint(clean.length());
+		RETURN_IF_FAILED(factory::dwrite->CreateTextLayout(clean.data(), length, text_format, width, height, &text_layout));
 	}
-
-	return factory::dwrite->CreateTextLayout(text.data(), js::to_uint(text.length()), text_format, width, height, &text_layout);
+	else
+	{
+		length = js::to_uint(text.length());
+		RETURN_IF_FAILED(factory::dwrite->CreateTextLayout(text.data(), length, text_format, width, height, &text_layout));
+	}
+	
+	return text_layout->SetTypography(factory::typography.get(), { 0U, length });
 }

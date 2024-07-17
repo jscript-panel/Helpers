@@ -2,7 +2,7 @@
 
 struct Font
 {
-	Font() {}
+	Font() = default;
 
 	Font(std::wstring_view name, float size, uint32_t weight, uint32_t style, uint32_t stretch)
 		: m_name(name)
