@@ -1,35 +1,9 @@
 #pragma once
 
-using VariantArgs = std::vector<_variant_t>;
-
 namespace js
 {
 	template <typename T>
 	concept IsNum = std::integral<T> || std::floating_point<T>;
-
-	template <typename T>
-	static auto pfc_array(size_t count)
-	{
-		pfc::array_t<T> arr;
-		arr.set_size(count);
-		return arr;
-	}
-
-	template <typename T>
-	static auto pfc_list(const T& item)
-	{
-		return pfc::list_single_ref_t<T>(item);
-	}
-
-	static void** arg_helper(auto arg)
-	{
-		return reinterpret_cast<void**>(arg);
-	}
-
-	static D2D1_RECT_F to_rectf(float x = 0.f, float y = 0.f, float w = 0.f, float h = 0.f)
-	{
-		return D2D1::RectF(x, y, x + w, y + h);
-	}
 
 	static HWND to_wnd(uintptr_t window_id)
 	{
@@ -64,6 +38,11 @@ namespace js
 	static uint32_t to_uint(IsNum auto num)
 	{
 		return static_cast<uint32_t>(num);
+	}
+
+	static D2D1_RECT_F to_rectf(float x, float y, float w, float h)
+	{
+		return D2D1::RectF(x, y, x + w, y + h);
 	}
 
 	static D2D1_RECT_F to_rectf(const D2D1_SIZE_U& size)
