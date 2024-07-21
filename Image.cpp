@@ -54,8 +54,8 @@ namespace js
 		const double dw = static_cast<double>(size.width);
 		const double dh = static_cast<double>(size.height);
 		const double s = std::min(dmax / dw, dmax / dh);
-		const uint32_t new_width = js::to_uint(dw * s);
-		const uint32_t new_height = js::to_uint(dh * s);
+		const uint32_t new_width = to_uint(dw * s);
+		const uint32_t new_height = to_uint(dh * s);
 
 		return resize_bitmap(new_width, new_height, bitmap);
 	}
@@ -81,8 +81,8 @@ namespace js
 			auto webp = WebPDecodeBGRA(data, data_size, &bs.width, &bs.height);
 			if (webp)
 			{
-				const auto width = js::to_uint(bs.width);
-				const auto height = js::to_uint(bs.height);
+				const auto width = to_uint(bs.width);
+				const auto height = to_uint(bs.height);
 				const auto stride = width * 4U;
 				const auto size = stride * height;
 				const HRESULT hr = factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, stride, size, webp, &bitmap);
@@ -143,7 +143,7 @@ namespace js
 		std::string xml;
 		if (path_or_xml.contains(L'<'))
 		{
-			xml = js::from_wide(path_or_xml);
+			xml = from_wide(path_or_xml);
 		}
 		else
 		{
@@ -175,14 +175,14 @@ namespace js
 
 			if (max_width == 0.f)
 			{
-				width = js::to_uint(svg_size.width);
-				height = js::to_uint(svg_size.height);
+				width = to_uint(svg_size.width);
+				height = to_uint(svg_size.height);
 			}
 			else
 			{
 				ratio = max_width / svg_size.width;
-				width = js::to_uint(max_width);
-				height = js::to_uint(svg_size.height / svg_size.width * max_width);
+				width = to_uint(max_width);
+				height = to_uint(svg_size.height / svg_size.width * max_width);
 			}
 
 			const auto transform = resvg_transform(ratio, 0.f, 0.f, ratio, 0.f, 0.f);
