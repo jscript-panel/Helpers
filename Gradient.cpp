@@ -111,7 +111,7 @@ HRESULT Gradient::CreateRadialBrush(JSON& obj, float x, float y)
 HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = ellipse.point.x - ellipse.radiusX;
 	const auto y = ellipse.point.y - ellipse.radiusY;
@@ -134,7 +134,7 @@ HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, std
 HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = p1.x;
 	const auto y = p1.y;
@@ -157,7 +157,7 @@ HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, flo
 HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = rect.left;
 	const auto y = rect.top;
@@ -180,7 +180,7 @@ HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, std::
 HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = rounded_rect.rect.left;
 	const auto y = rounded_rect.rect.top;
@@ -203,7 +203,7 @@ HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, fl
 HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = ellipse.point.x - ellipse.radiusX;
 	const auto y = ellipse.point.y - ellipse.radiusY;
@@ -226,7 +226,7 @@ HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, std::wstring_view str
 HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = rect.left;
 	const auto y = rect.top;
@@ -249,7 +249,7 @@ HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, std::wstring_view str)
 HRESULT Gradient::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, std::wstring_view str)
 {
 	auto j = Parse(str);
-	if (j.is_null()) return E_INVALIDARG;
+	RETURN_HR_IF(E_INVALIDARG, j.is_null());
 
 	const auto x = rounded_rect.rect.left;
 	const auto y = rounded_rect.rect.top;
