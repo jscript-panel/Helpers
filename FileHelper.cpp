@@ -191,11 +191,6 @@ std::string FileHelper::read()
 	return str;
 }
 
-std::wstring FileHelper::filename()
-{
-	return m_path.stem().native();
-}
-
 uint32_t FileHelper::guess_codepage()
 {
 	return guess_codepage(read());

@@ -36,6 +36,12 @@ public:
 		return std::string(str.substr(size_t{}, len));
 	}
 
+	static std::wstring filename(std::wstring_view path)
+	{
+		const auto fs_path = std::filesystem::path(path.data());
+		return fs_path.stem().native();
+	}
+
 	static std::wstring parent(std::wstring_view path)
 	{
 		const auto fs_path = std::filesystem::path(path.data());
