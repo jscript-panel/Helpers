@@ -146,6 +146,6 @@ HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout,
 		length = js::to_uint(text.length());
 		RETURN_IF_FAILED(factory::dwrite->CreateTextLayout(text.data(), length, text_format, width, height, &text_layout));
 	}
-	
+
 	return text_layout->SetTypography(factory::typography.get(), { 0U, length });
 }
