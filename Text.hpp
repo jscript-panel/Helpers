@@ -135,19 +135,6 @@ namespace js
 		return fmt::format("{{{}}}", pfc::print_guid(g).get_ptr());
 	}
 
-	static std::string strip_trailing_periods(std::string_view str)
-	{
-		size_t len = str.length();
-
-		for (const char c : str | std::views::reverse)
-		{
-			if (c != '.') break;
-			len--;
-		}
-
-		return std::string(str.substr(size_t{}, len));
-	}
-
 	static std::wstring json_to_wstring(JSON& j)
 	{
 		const auto str = json_to_string(j);
@@ -160,13 +147,6 @@ namespace js
 		ret = remove_mark(ret.data(), 3);
 		ret = remove_mark(ret.data(), 7);
 		return ret;
-	}
-
-	static std::wstring wdisplay_path(std::string_view path)
-	{
-		string8 tmp;
-		filesystem::g_get_display_path(path.data(), tmp);
-		return to_wide(tmp);
 	}
 
 	static void sort_strings(WStrings& strings)

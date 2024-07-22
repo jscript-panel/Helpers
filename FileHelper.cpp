@@ -196,11 +196,6 @@ std::wstring FileHelper::filename()
 	return m_path.stem().native();
 }
 
-std::wstring FileHelper::parent_path()
-{
-	return m_path.parent_path().native() + fs::path::preferred_separator;
-}
-
 uint32_t FileHelper::guess_codepage()
 {
 	return guess_codepage(read());

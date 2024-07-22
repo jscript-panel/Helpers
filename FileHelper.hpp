@@ -22,7 +22,6 @@ public:
 	bool write(std::wstring_view content);
 	std::string read();
 	std::wstring filename();
-	std::wstring parent_path();
 	uint32_t guess_codepage();
 	uint64_t file_size();
 	uint64_t last_modified();
