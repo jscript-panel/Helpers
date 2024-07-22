@@ -96,7 +96,7 @@ namespace js
 	HRESULT libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
 	{
 		auto data = AlbumArtStatic::istream_to_data(stream);
-		RETURN_HR_IF(E_FAIL, data.is_empty());
+		RETURN_HR_IF_EXPECTED(E_FAIL, data.is_empty());
 		RETURN_IF_FAILED(libwebp_data_to_bitmap(static_cast<const uint8_t*>(data->data()), data->size(), bitmap));
 		return S_OK;
 	}
