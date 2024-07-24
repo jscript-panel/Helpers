@@ -1,4 +1,5 @@
 #pragma once
+#include "FormatParams.hpp"
 
 struct Font
 {
@@ -23,6 +24,8 @@ struct Font
 	{
 		return static_cast<T>(std::stoul(str.data()));
 	}
+
+	HRESULT create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const FormatParams& params) const;
 
 	BOOL m_strikethrough{}, m_underline{};
 	DWRITE_FONT_WEIGHT m_weight = DWRITE_FONT_WEIGHT_NORMAL;

@@ -118,19 +118,6 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view
 	return S_OK;
 }
 
-HRESULT WriteText::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const Font& font, const FormatParams& params)
-{
-	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
-
-	RETURN_IF_FAILED(factory::dwrite->CreateTextFormat(font.m_name.data(), nullptr, font.m_weight, font.m_style, font.m_stretch, font.m_size, L"", &text_format));
-	RETURN_IF_FAILED(text_format->SetTextAlignment(params.m_text_alignment));
-	RETURN_IF_FAILED(text_format->SetParagraphAlignment(params.m_paragraph_alignment));
-	RETURN_IF_FAILED(text_format->SetWordWrapping(params.m_word_wrapping));
-	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format.get(), &trimmingSign));
-	RETURN_IF_FAILED(text_format->SetTrimming(&params.m_trimming, trimmingSign.get()));
-	return S_OK;
-}
-
 HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, std::wstring_view text, float width, float height)
 {
 	uint32_t length{};

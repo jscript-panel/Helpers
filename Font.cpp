@@ -68,3 +68,16 @@ Font::Font(std::wstring_view str)
 	if (parts[4] == L"1") m_underline = TRUE;
 	if (parts[5] == L"1") m_strikethrough = TRUE;
 }
+
+HRESULT Font::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const FormatParams& params) const
+{
+	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
+
+	RETURN_IF_FAILED(factory::dwrite->CreateTextFormat(m_name.data(), nullptr, m_weight, m_style, m_stretch, m_size, L"", &text_format));
+	RETURN_IF_FAILED(text_format->SetTextAlignment(params.m_text_alignment));
+	RETURN_IF_FAILED(text_format->SetParagraphAlignment(params.m_paragraph_alignment));
+	RETURN_IF_FAILED(text_format->SetWordWrapping(params.m_word_wrapping));
+	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format.get(), &trimmingSign));
+	RETURN_IF_FAILED(text_format->SetTrimming(&params.m_trimming, trimmingSign.get()));
+	return S_OK;
+}
