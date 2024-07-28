@@ -1,15 +1,7 @@
 #include "stdafx.hpp"
-#include "WriteText.hpp"
+#include "WriteTextLayout.hpp"
 
-DWRITE_TEXT_RANGE WriteText::to_range(size_t start, size_t length)
-{
-	DWRITE_TEXT_RANGE range{};
-	range.startPosition = js::to_uint(start);
-	range.length = js::to_uint(length);
-	return range;
-}
-
-HRESULT WriteText::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool verify_colour)
+HRESULT WriteTextLayout::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool verify_colour)
 {
 	if (obj.is_object() && obj["Start"].is_number_unsigned() && obj["Length"].is_number_unsigned())
 	{
@@ -23,7 +15,7 @@ HRESULT WriteText::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool verify_col
 	return E_INVALIDARG;
 }
 
-HRESULT WriteText::apply_colour(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, const D2D1_COLOR_F& colour, const DWRITE_TEXT_RANGE& range)
+HRESULT WriteTextLayout::apply_colour(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, const D2D1_COLOR_F& colour, const DWRITE_TEXT_RANGE& range)
 {
 	wil::com_ptr_t<ID2D1SolidColorBrush> brush;
 	RETURN_IF_FAILED(context->CreateSolidColorBrush(colour, &brush));
@@ -31,8 +23,10 @@ HRESULT WriteText::apply_colour(IDWriteTextLayout* text_layout, ID2D1DeviceConte
 	return S_OK;
 }
 
-HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& colours)
+HRESULT WriteTextLayout::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& colours)
 {
+	RETURN_HR_IF(E_INVALIDARG, !colours.is_array());
+
 	DWRITE_TEXT_RANGE range{};
 
 	for (auto&& colour : colours)
@@ -46,9 +40,9 @@ HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceCont
 	return S_OK;
 }
 
-HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, std::wstring_view text)
+HRESULT WriteTextLayout::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, std::wstring_view text)
 {
-	size_t start = text.find(ETX);
+	uint32_t start = js::to_uint(text.find(ETX));
 	const auto parts = js::split_string(text, ETX);
 
 	for (size_t i = 1; i < parts.size(); i += 2)
@@ -57,7 +51,7 @@ HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceCont
 		const auto& text_part = parts[i + 1];
 		if (text_part.empty()) continue;
 
-		const auto range = to_range(start, text_part.length());
+		const auto range = DWRITE_TEXT_RANGE(start, js::lengthu(text_part));
 		start += range.length;
 
 		if (!colour_part.empty())
@@ -69,7 +63,7 @@ HRESULT WriteText::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceCont
 	return S_OK;
 }
 
-HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, const Font& font, const DWRITE_TEXT_RANGE& range)
+HRESULT WriteTextLayout::apply_font(IDWriteTextLayout* text_layout, const Font& font, const DWRITE_TEXT_RANGE& range)
 {
 	RETURN_IF_FAILED(text_layout->SetFontFamilyName(font.m_name.data(), range));
 	RETURN_IF_FAILED(text_layout->SetFontSize(font.m_size, range));
@@ -81,7 +75,7 @@ HRESULT WriteText::apply_font(IDWriteTextLayout* text_layout, const Font& font, 
 	return S_OK;
 }
 
-HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& jfonts)
+HRESULT WriteTextLayout::apply_fonts(IDWriteTextLayout* text_layout, JSON& jfonts)
 {
 	for (auto&& jfont : jfonts)
 	{
@@ -94,9 +88,9 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, JSON& jfonts)
 	return S_OK;
 }
 
-HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view text)
+HRESULT WriteTextLayout::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view text)
 {
-	size_t start = text.find(BEL);
+	uint32_t start = js::to_uint(text.find(BEL));
 	const auto parts = js::split_string(text, BEL);
 
 	for (size_t i = 1; i < parts.size(); i += 2)
@@ -105,7 +99,7 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view
 		const auto& text_part = parts[i + 1];
 		if (text_part.empty()) continue;
 
-		const auto range = to_range(start, text_part.length());
+		const auto range = DWRITE_TEXT_RANGE(start, js::lengthu(text_part));
 		start += range.length;
 
 		if (!font_part.empty())
@@ -118,21 +112,17 @@ HRESULT WriteText::apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view
 	return S_OK;
 }
 
-HRESULT WriteText::create_layout(wil::com_ptr_t<IDWriteTextLayout>& text_layout, IDWriteTextFormat* text_format, std::wstring_view text, float width, float height)
+HRESULT WriteTextLayout::create(wil::com_ptr_t<IDWriteTextLayout>& text_layout, const Font& font, const FormatParams& params, std::wstring_view text, float width, float height)
 {
-	uint32_t length{};
+	const auto clean = js::remove_marks(text);
+	const auto length = js::lengthu(clean);
+	const auto range = DWRITE_TEXT_RANGE(0U, length);
+	wil::com_ptr_t<IDWriteTextFormat> text_format;
 
-	if (text.contains(BEL) || text.contains(ETX))
-	{
-		auto clean = js::remove_marks(text);
-		length = js::to_uint(clean.length());
-		RETURN_IF_FAILED(factory::dwrite->CreateTextLayout(clean.data(), length, text_format, width, height, &text_layout));
-	}
-	else
-	{
-		length = js::to_uint(text.length());
-		RETURN_IF_FAILED(factory::dwrite->CreateTextLayout(text.data(), length, text_format, width, height, &text_layout));
-	}
-
-	return text_layout->SetTypography(factory::typography.get(), { 0U, length });
+	RETURN_IF_FAILED(font.create_format(text_format, params));
+	RETURN_IF_FAILED(factory::dwrite->CreateTextLayout(clean.data(), length, text_format.get(), width, height, &text_layout));
+	RETURN_IF_FAILED(text_layout->SetStrikethrough(font.m_strikethrough, range));
+	RETURN_IF_FAILED(text_layout->SetUnderline(font.m_underline, range));
+	RETURN_IF_FAILED(text_layout->SetTypography(factory::typography.get(), range));
+	return S_OK;
 }
