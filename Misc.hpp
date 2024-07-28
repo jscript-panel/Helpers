@@ -22,4 +22,10 @@ namespace js
 	{
 		return reinterpret_cast<void**>(arg);
 	}
+
+	template <typename T>
+	static uint32_t sizeu(const T& blah) 
+	{
+		return to_uint(blah.size());
+	}
 }

@@ -48,7 +48,7 @@ HRESULT Gradient::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D
 		stops.emplace_back(stop);
 	}
 
-	return m_context->CreateGradientStopCollection(stops.data(), js::to_uint(stops.size()), &collection);
+	return m_context->CreateGradientStopCollection(stops.data(), js::sizeu(stops), &collection);
 }
 
 HRESULT Gradient::CreateLinearBrush(JSON& obj, float x, float y)

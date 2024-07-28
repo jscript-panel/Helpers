@@ -174,7 +174,7 @@ bool FileHelper::write(std::wstring_view content)
 std::string FileHelper::read()
 {
 	auto f = std::ifstream(m_path);
-	if (!f.is_open()) return std::string();
+	if (!f.is_open()) return {};
 
 	Strings strings;
 	std::string line;

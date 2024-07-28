@@ -65,7 +65,7 @@ namespace js
 			return j.dump();
 		}
 
-		return std::string();
+		return {};
 	}
 
 	static std::string from_wide(std::wstring_view str)
@@ -127,7 +127,7 @@ namespace js
 	static std::string get_resource_text(int id)
 	{
 		const auto res = uLoadResource(core_api::get_my_instance(), uMAKEINTRESOURCE(id), "TEXT");
-		return std::string(static_cast<const char*>(res->GetPointer()), res->GetSize());
+		return { static_cast<const char*>(res->GetPointer()), res->GetSize() };
 	}
 
 	static std::string print_guid(const GUID& g)
@@ -143,10 +143,14 @@ namespace js
 
 	static std::wstring remove_marks(std::wstring_view str)
 	{
-		std::wstring ret(str);
-		ret = remove_mark(ret.data(), 3);
+		std::wstring ret = remove_mark(str.data(), 3);
 		ret = remove_mark(ret.data(), 7);
 		return ret;
+	}
+
+	static uint32_t lengthu(std::wstring_view str)
+	{
+		return to_uint(str.length());
 	}
 
 	static void sort_strings(WStrings& strings)

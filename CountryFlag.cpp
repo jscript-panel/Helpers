@@ -46,7 +46,7 @@ std::string CountryFlag::get(std::string_view country_or_code)
 		}
 	}
 
-	return std::string();
+	return {};
 }
 
 std::wstring CountryFlag::get(std::wstring_view country_or_code)
