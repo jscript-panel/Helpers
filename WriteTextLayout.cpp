@@ -112,6 +112,18 @@ HRESULT WriteTextLayout::apply_fonts(IDWriteTextLayout* text_layout, std::wstrin
 	return S_OK;
 }
 
+HRESULT WriteTextLayout::apply_line_spacing(IDWriteTextLayout3* text_layout)
+{
+	DWRITE_LINE_SPACING spacing{};
+	spacing.method = DWRITE_LINE_SPACING_METHOD_PROPORTIONAL;
+	spacing.height = 1.f;
+	spacing.baseline = 1.f;
+	spacing.leadingBefore = 0.f;
+	spacing.fontLineGapUsage = DWRITE_FONT_LINE_GAP_USAGE_DISABLED;
+
+	return text_layout->SetLineSpacing(&spacing);
+}
+
 HRESULT WriteTextLayout::create(wil::com_ptr_t<IDWriteTextLayout>& text_layout, const Font& font, const FormatParams& params, std::wstring_view text, float width, float height)
 {
 	const auto clean = js::remove_marks(text);
@@ -124,5 +136,14 @@ HRESULT WriteTextLayout::create(wil::com_ptr_t<IDWriteTextLayout>& text_layout, 
 	RETURN_IF_FAILED(text_layout->SetStrikethrough(font.m_strikethrough, range));
 	RETURN_IF_FAILED(text_layout->SetUnderline(font.m_underline, range));
 	RETURN_IF_FAILED(text_layout->SetTypography(factory::typography.get(), range));
+	return S_OK;
+}
+
+HRESULT WriteTextLayout::create3(wil::com_ptr_t<IDWriteTextLayout3>& text_layout, const Font& font, const FormatParams& params, std::wstring_view text)
+{
+	wil::com_ptr_t<IDWriteTextLayout> temp_layout;
+
+	RETURN_IF_FAILED(create(temp_layout, font, params, text, FLT_MAX, FLT_MAX));
+	RETURN_HR_IF(E_FAIL, !temp_layout.try_query_to(IID_PPV_ARGS(&text_layout)));
 	return S_OK;
 }
