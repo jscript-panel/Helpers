@@ -19,33 +19,42 @@ bool FileHelper::rename(std::wstring_view from, std::wstring_view to)
 
 uint32_t FileHelper::guess_codepage(std::string_view content)
 {
-	if (content.empty()) return 0;
+	if (content.empty())
+		return 0;
 
 	auto lang = wil::CoCreateInstanceNoThrow<IMultiLanguage2>(CLSID_CMultiLanguage);
-	if (!lang) return 0;
+	if (!lang)
+		return 0;
 
 	auto src = const_cast<char*>(content.data());
 	static constexpr int max_encodings = 1;
 	int encoding_count = max_encodings;
 	int size = js::to_int(content.length());
 	std::array<DetectEncodingInfo, max_encodings> encodings{};
-	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count)) return 0;
+	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count))
+		return 0;
 
 	const uint32_t codepage = encodings[0].nCodePage;
-	if (codepage == 20127) return CP_UTF8;
+	if (codepage == 20127)
+		return CP_UTF8;
+
 	return codepage;
 }
 #pragma endregion
 
 WStrings FileHelper::list_files(bool recur)
 {
-	if (recur) return list_t<fs::recursive_directory_iterator>(EntryType::File);
+	if (recur)
+		return list_t<fs::recursive_directory_iterator>(EntryType::File);
+
 	return list_t(EntryType::File);
 }
 
 WStrings FileHelper::list_folders(bool recur)
 {
-	if (recur) return list_t<fs::recursive_directory_iterator>(EntryType::Folder);
+	if (recur)
+		return list_t<fs::recursive_directory_iterator>(EntryType::Folder);
+
 	return list_t(EntryType::Folder);
 }
 
@@ -109,7 +118,9 @@ bool FileHelper::copy_folder(std::wstring_view to, bool overwrite, bool recur)
 bool FileHelper::create_folder()
 {
 	std::error_code ec;
-	if (fs::is_directory(m_path, ec)) return true;
+	if (fs::is_directory(m_path, ec))
+		return true;
+
 	return fs::create_directories(m_path, ec);
 }
 
@@ -174,7 +185,8 @@ bool FileHelper::write(std::wstring_view content)
 std::string FileHelper::read()
 {
 	auto f = std::ifstream(m_path);
-	if (!f.is_open()) return {};
+	if (!f.is_open())
+		return {};
 
 	Strings strings;
 	std::string line;

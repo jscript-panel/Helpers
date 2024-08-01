@@ -4,7 +4,9 @@
 #pragma region static
 HRESULT Gradient::CheckTwoNumberArray(JSON& j)
 {
-	if (j.is_array() && j.size() == 2 && j[0].is_number() && j[1].is_number()) return S_OK;
+	if (j.is_array() && j.size() == 2 && j[0].is_number() && j[1].is_number())
+		return S_OK;
+
 	return E_INVALIDARG;
 }
 
@@ -26,7 +28,8 @@ JSON Gradient::Parse(std::wstring_view str)
 
 std::optional<D2D1_POINT_2F> Gradient::ToPoint(JSON& j)
 {
-	if FAILED(CheckTwoNumberArray(j)) return std::nullopt;
+	if FAILED(CheckTwoNumberArray(j))
+		return std::nullopt;
 
 	const auto x = j[0].get<float>();
 	const auto y = j[1].get<float>();

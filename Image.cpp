@@ -33,22 +33,24 @@ namespace js
 {
 	HRESULT check_stream_size(IStream* stream)
 	{
-		if (get_stream_size(stream) > Component::max_image_size) return E_INVALIDARG;
+		if (get_stream_size(stream) > Component::max_image_size)
+			return E_INVALIDARG;
+
 		return S_OK;
 	}
 
 	HRESULT fit_to(uint32_t max_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 	{
-		if (max_size == 0U) return S_OK;
+		if (max_size == 0U)
+			return S_OK;
 
 		D2D1_SIZE_U size{};
 		RETURN_IF_FAILED(bitmap->GetSize(&size.width, &size.height));
-		if (size.width <= max_size && size.height <= max_size) return S_OK;
+		if (size.width <= max_size && size.height <= max_size)
+			return S_OK;
 
 		if (size.width == size.height)
-		{
 			return resize_bitmap(max_size, max_size, bitmap);
-		}
 
 		const double dmax = static_cast<double>(max_size);
 		const double dw = static_cast<double>(size.width);
@@ -120,20 +122,30 @@ namespace js
 	IJSImage* create_image(uint32_t width, uint32_t height)
 	{
 		wil::com_ptr_t<IWICBitmap> bitmap;
-		if FAILED(factory::imaging->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &bitmap)) return nullptr;
+		if FAILED(factory::imaging->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &bitmap))
+			return nullptr;
+
 		return new ComObject<JSImage>(bitmap);
 	}
 
 	IJSImage* path_to_image(std::wstring_view path, uint32_t max_size)
 	{
 		wil::com_ptr_t<IStream> stream;
-		if FAILED(path_to_istream(path, stream)) return nullptr;
-
 		wil::com_ptr_t<IWICBitmap> bitmap;
+
+		if FAILED(path_to_istream(path, stream))
+			return nullptr;
+
 		HRESULT hr = istream_to_bitmap(stream.get(), bitmap);
-		if FAILED(hr) hr = libwebp_istream_to_bitmap(stream.get(), bitmap);
-		if FAILED(hr) return nullptr;
-		if FAILED(fit_to(max_size, bitmap)) return nullptr;
+		if FAILED(hr)
+			hr = libwebp_istream_to_bitmap(stream.get(), bitmap);
+
+		if FAILED(hr)
+			return nullptr;
+
+		if FAILED(fit_to(max_size, bitmap))
+			return nullptr;
+
 		return new ComObject<JSImage>(bitmap, path);
 	}
 
@@ -148,7 +160,8 @@ namespace js
 		else
 		{
 			xml = FileHelper(path_or_xml).read();
-			if (xml.empty()) return nullptr;
+			if (xml.empty())
+				return nullptr;
 		}
 
 		int status{};
@@ -219,7 +232,9 @@ namespace js
 	uint32_t get_stream_size(IStream* stream)
 	{
 		STATSTG stats{};
-		if FAILED(stream->Stat(&stats, STATFLAG_DEFAULT)) return UINT_MAX;
+		if FAILED(stream->Stat(&stats, STATFLAG_DEFAULT))
+			return UINT_MAX;
+
 		return stats.cbSize.LowPart;
 	}
 }
