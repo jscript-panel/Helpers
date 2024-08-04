@@ -23,18 +23,18 @@ HRESULT WriteTextLayout::apply_colour(IDWriteTextLayout* text_layout, ID2D1Devic
 	return S_OK;
 }
 
-HRESULT WriteTextLayout::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& colours)
+HRESULT WriteTextLayout::apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& jcolours)
 {
-	RETURN_HR_IF(E_INVALIDARG, !colours.is_array());
+	RETURN_HR_IF(E_INVALIDARG, !jcolours.is_array());
 
 	DWRITE_TEXT_RANGE range{};
 
-	for (auto&& colour : colours)
+	for (auto&& jcolour : jcolours)
 	{
-		RETURN_IF_FAILED(to_range(colour, range, true));
+		RETURN_IF_FAILED(to_range(jcolour, range, true));
 
-		const auto colourf = js::to_colorf(colour["Colour"]);
-		RETURN_IF_FAILED(apply_colour(text_layout, context, colourf, range));
+		const auto colour = js::to_colorf(jcolour["Colour"]);
+		RETURN_IF_FAILED(apply_colour(text_layout, context, colour, range));
 	}
 
 	return S_OK;

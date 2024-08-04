@@ -4,7 +4,7 @@
 class WriteTextLayout
 {
 public:
-	static HRESULT apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& colours);
+	static HRESULT apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& jcolours);
 	static HRESULT apply_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, std::wstring_view text);
 	static HRESULT apply_fonts(IDWriteTextLayout* text_layout, JSON& jfonts);
 	static HRESULT apply_fonts(IDWriteTextLayout* text_layout, std::wstring_view text);
