@@ -133,7 +133,8 @@ namespace KMeans
 	Colours GetColours(IWICBitmap* bitmap, size_t count)
 	{
 		ColourCounters colour_counters;
-		if FAILED(GetColourCounters(bitmap, colour_counters)) return Colours();
+		if FAILED(GetColourCounters(bitmap, colour_counters))
+			return Colours();
 
 		KPoints points;
 		for (auto&& [index, value] : std::views::enumerate(colour_counters))

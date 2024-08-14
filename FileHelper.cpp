@@ -237,16 +237,20 @@ uint64_t FileHelper::last_modified()
 void FileHelper::read_wide(uint32_t codepage, std::wstring& content)
 {
 	const auto& file = wil::try_open_file(m_path.c_str()).file;
-	if (!file) return;
+	if (!file)
+		return;
 
 	const auto file_size = GetFileSize(file.get(), nullptr);
-	if (file_size == INVALID_FILE_SIZE) return;
+	if (file_size == INVALID_FILE_SIZE)
+		return;
 
 	const auto file_mapping = wil::unique_handle(CreateFileMappingW(file.get(), nullptr, PAGE_READONLY, 0, 0, nullptr));
-	if (!file_mapping) return;
+	if (!file_mapping)
+		return;
 
 	const auto ptr = wil::unique_mapview_ptr<uint8_t>(static_cast<uint8_t*>(MapViewOfFile(file_mapping.get(), FILE_MAP_READ, 0, 0, 0)));
-	if (!ptr) return;
+	if (!ptr)
+		return;
 
 	if (file_size >= 2 && memcmp(ptr.get(), UTF_16_LE_BOM.data(), 2) == 0)
 	{

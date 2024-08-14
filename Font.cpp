@@ -10,7 +10,8 @@ Font::Font(std::wstring_view name, float size, uint32_t weight, uint32_t style, 
 
 Font::Font(JSON& obj)
 {
-	if (!obj.is_object()) return;
+	if (!obj.is_object())
+		return;
 
 	auto name = js::json_to_wstring(obj["Name"]);
 	if (name.length())
@@ -58,7 +59,8 @@ Font::Font(JSON& obj)
 Font::Font(std::wstring_view str)
 {
 	const auto parts = js::split_string(str, TAB);
-	if (parts.size() != 6) return;
+	if (parts.size() != 6)
+		return;
 
 	m_name = parts[0];
 	m_size = get<float>(parts[1]);
