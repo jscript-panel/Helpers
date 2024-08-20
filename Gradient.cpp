@@ -37,7 +37,7 @@ std::optional<D2D1_POINT_2F> Gradient::ToPoint(JSON& j)
 }
 #pragma endregion
 
-HRESULT Gradient::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D1GradientStopCollection>& collection)
+HRESULT Gradient::CreateGradientStopCollection(ID2D1DeviceContext* context, JSON& jstops, wil::com_ptr_t<ID2D1GradientStopCollection>& collection)
 {
 	std::vector<D2D1_GRADIENT_STOP> stops;
 
@@ -51,10 +51,10 @@ HRESULT Gradient::CreateGradientStopCollection(JSON& jstops, wil::com_ptr_t<ID2D
 		stops.emplace_back(stop);
 	}
 
-	return m_context->CreateGradientStopCollection(stops.data(), js::sizeu(stops), &collection);
+	return context->CreateGradientStopCollection(stops.data(), js::sizeu(stops), &collection);
 }
 
-HRESULT Gradient::CreateLinearBrush(JSON& obj, float x, float y)
+HRESULT Gradient::CreateLinearBrush(ID2D1DeviceContext* context, JSON& obj, float x, float y)
 {
 	auto start = ToPoint(obj["Start"]);
 	auto end = ToPoint(obj["End"]);
@@ -68,8 +68,8 @@ HRESULT Gradient::CreateLinearBrush(JSON& obj, float x, float y)
 			D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES properties{};
 			wil::com_ptr_t<ID2D1GradientStopCollection> collection;
 
-			RETURN_IF_FAILED(CreateGradientStopCollection(jstops, collection));
-			RETURN_IF_FAILED(m_context->CreateLinearGradientBrush(properties, collection.get(), &m_linear_brush));
+			RETURN_IF_FAILED(CreateGradientStopCollection(context, jstops, collection));
+			RETURN_IF_FAILED(context->CreateLinearGradientBrush(properties, collection.get(), &m_linear_brush));
 			m_linear_stop_string = stop_string;
 		}
 
@@ -83,7 +83,7 @@ HRESULT Gradient::CreateLinearBrush(JSON& obj, float x, float y)
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::CreateRadialBrush(JSON& obj, float x, float y)
+HRESULT Gradient::CreateRadialBrush(ID2D1DeviceContext* context, JSON& obj, float x, float y)
 {
 	auto centre = ToPoint(obj["Centre"]);
 	auto radius = ToPoint(obj["Radius"]);
@@ -97,8 +97,8 @@ HRESULT Gradient::CreateRadialBrush(JSON& obj, float x, float y)
 			D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES properties{};
 			wil::com_ptr_t<ID2D1GradientStopCollection> collection;
 
-			RETURN_IF_FAILED(CreateGradientStopCollection(jstops, collection));
-			RETURN_IF_FAILED(m_context->CreateRadialGradientBrush(properties, collection.get(), &m_radial_brush));
+			RETURN_IF_FAILED(CreateGradientStopCollection(context, jstops, collection));
+			RETURN_IF_FAILED(context->CreateRadialGradientBrush(properties, collection.get(), &m_radial_brush));
 			m_radial_stop_string = stop_string;
 		}
 
@@ -111,7 +111,7 @@ HRESULT Gradient::CreateRadialBrush(JSON& obj, float x, float y)
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, std::wstring_view str)
+HRESULT Gradient::DrawEllipse(ID2D1DeviceContext* context, const D2D1_ELLIPSE& ellipse, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -119,22 +119,22 @@ HRESULT Gradient::DrawEllipse(const D2D1_ELLIPSE& ellipse, float line_width, std
 	const auto x = ellipse.point.x - ellipse.radiusX;
 	const auto y = ellipse.point.y - ellipse.radiusY;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->DrawEllipse(ellipse, m_linear_brush.get(), line_width);
+		context->DrawEllipse(ellipse, m_linear_brush.get(), line_width);
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->DrawEllipse(ellipse, m_radial_brush.get(), line_width);
+		context->DrawEllipse(ellipse, m_radial_brush.get(), line_width);
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, std::wstring_view str)
+HRESULT Gradient::DrawLine(ID2D1DeviceContext* context, const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -142,22 +142,22 @@ HRESULT Gradient::DrawLine(const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, flo
 	const auto x = p1.x;
 	const auto y = p1.y;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->DrawLine(p1, p2, m_linear_brush.get(), line_width);
+		context->DrawLine(p1, p2, m_linear_brush.get(), line_width);
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->DrawLine(p1, p2, m_radial_brush.get(), line_width);
+		context->DrawLine(p1, p2, m_radial_brush.get(), line_width);
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, std::wstring_view str)
+HRESULT Gradient::DrawRectangle(ID2D1DeviceContext* context, const D2D1_RECT_F& rect, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -165,22 +165,22 @@ HRESULT Gradient::DrawRectangle(const D2D1_RECT_F& rect, float line_width, std::
 	const auto x = rect.left;
 	const auto y = rect.top;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->DrawRectangle(rect, m_linear_brush.get(), line_width);
+		context->DrawRectangle(rect, m_linear_brush.get(), line_width);
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->DrawRectangle(rect, m_radial_brush.get(), line_width);
+		context->DrawRectangle(rect, m_radial_brush.get(), line_width);
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, float line_width, std::wstring_view str)
+HRESULT Gradient::DrawRoundedRectangle(ID2D1DeviceContext* context, const D2D1_ROUNDED_RECT& rounded_rect, float line_width, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -188,22 +188,22 @@ HRESULT Gradient::DrawRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, fl
 	const auto x = rounded_rect.rect.left;
 	const auto y = rounded_rect.rect.top;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->DrawRoundedRectangle(rounded_rect, m_linear_brush.get(), line_width);
+		context->DrawRoundedRectangle(rounded_rect, m_linear_brush.get(), line_width);
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->DrawRoundedRectangle(rounded_rect, m_radial_brush.get(), line_width);
+		context->DrawRoundedRectangle(rounded_rect, m_radial_brush.get(), line_width);
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, std::wstring_view str)
+HRESULT Gradient::FillEllipse(ID2D1DeviceContext* context, const D2D1_ELLIPSE& ellipse, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -211,22 +211,22 @@ HRESULT Gradient::FillEllipse(const D2D1_ELLIPSE& ellipse, std::wstring_view str
 	const auto x = ellipse.point.x - ellipse.radiusX;
 	const auto y = ellipse.point.y - ellipse.radiusY;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->FillEllipse(ellipse, m_linear_brush.get());
+		context->FillEllipse(ellipse, m_linear_brush.get());
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->FillEllipse(ellipse, m_radial_brush.get());
+		context->FillEllipse(ellipse, m_radial_brush.get());
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, std::wstring_view str)
+HRESULT Gradient::FillRectangle(ID2D1DeviceContext* context, const D2D1_RECT_F& rect, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -234,22 +234,22 @@ HRESULT Gradient::FillRectangle(const D2D1_RECT_F& rect, std::wstring_view str)
 	const auto x = rect.left;
 	const auto y = rect.top;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->FillRectangle(rect, m_linear_brush.get());
+		context->FillRectangle(rect, m_linear_brush.get());
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->FillRectangle(rect, m_radial_brush.get());
+		context->FillRectangle(rect, m_radial_brush.get());
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
 }
 
-HRESULT Gradient::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, std::wstring_view str)
+HRESULT Gradient::FillRoundedRectangle(ID2D1DeviceContext* context, const D2D1_ROUNDED_RECT& rounded_rect, std::wstring_view str)
 {
 	auto j = Parse(str);
 	RETURN_HR_IF(E_INVALIDARG, j.is_null());
@@ -257,24 +257,19 @@ HRESULT Gradient::FillRoundedRectangle(const D2D1_ROUNDED_RECT& rounded_rect, st
 	const auto x = rounded_rect.rect.left;
 	const auto y = rounded_rect.rect.top;
 
-	if SUCCEEDED(CreateLinearBrush(j, x, y))
+	if SUCCEEDED(CreateLinearBrush(context, j, x, y))
 	{
-		m_context->FillRoundedRectangle(rounded_rect, m_linear_brush.get());
+		context->FillRoundedRectangle(rounded_rect, m_linear_brush.get());
 		return S_OK;
 	}
 
-	if SUCCEEDED(CreateRadialBrush(j, x, y))
+	if SUCCEEDED(CreateRadialBrush(context, j, x, y))
 	{
-		m_context->FillRoundedRectangle(rounded_rect, m_radial_brush.get());
+		context->FillRoundedRectangle(rounded_rect, m_radial_brush.get());
 		return S_OK;
 	}
 
 	return E_INVALIDARG;
-}
-
-void Gradient::Init(ID2D1DeviceContext* context)
-{
-	m_context = context;
 }
 
 void Gradient::Reset()
