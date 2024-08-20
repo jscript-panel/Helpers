@@ -103,6 +103,8 @@ HRESULT WriteTextLayout::set_colours(IDWriteTextLayout* text_layout, ID2D1Device
 
 HRESULT WriteTextLayout::set_colours_json(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& jcolours)
 {
+	RETURN_HR_IF(E_INVALIDARG, !jcolours.is_array());
+	
 	ColourRanges colour_ranges(jcolours.size());
 
 	for (auto&& [colour_range, jcolour] : std::views::zip(colour_ranges, jcolours))
