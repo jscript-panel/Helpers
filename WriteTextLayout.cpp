@@ -104,7 +104,7 @@ HRESULT WriteTextLayout::set_colours(IDWriteTextLayout* text_layout, ID2D1Device
 HRESULT WriteTextLayout::set_colours_json(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& jcolours)
 {
 	RETURN_HR_IF(E_INVALIDARG, !jcolours.is_array());
-	
+
 	ColourRanges colour_ranges(jcolours.size());
 
 	for (auto&& [colour_range, jcolour] : std::views::zip(colour_ranges, jcolours))
@@ -172,4 +172,22 @@ HRESULT WriteTextLayout::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool veri
 	}
 
 	return E_INVALIDARG;
+}
+
+float WriteTextLayout::calc_text_width(std::wstring_view text, const Font& font)
+{
+	wil::com_ptr_t<IDWriteTextLayout> text_layout;
+
+	if SUCCEEDED(create(text_layout, font, FormatParams(), text, FLT_MAX, FLT_MAX))
+	{
+		const auto fonts = parse_tf_fonts(text);
+		if SUCCEEDED(set_fonts(text_layout.get(), fonts))
+		{
+			DWRITE_TEXT_METRICS metrics{};
+			text_layout->GetMetrics(&metrics);
+			return metrics.widthIncludingTrailingWhitespace;
+		}
+	}
+
+	return 0.f;
 }
