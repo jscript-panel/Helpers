@@ -71,6 +71,45 @@ Font::Font(std::wstring_view str)
 	if (parts[5] == L"1") m_strikethrough = TRUE;
 }
 
+Font::Font(const LOGFONT& lf)
+{
+	const auto hr = [&]
+		{
+			wil::com_ptr_t<IDWriteFont> font;
+			wil::com_ptr_t<IDWriteFontFamily> font_family;
+			wil::com_ptr_t<IDWriteLocalizedStrings> family_names;
+
+			RETURN_IF_FAILED(factory::gdi_interop->CreateFontFromLOGFONT(&lf, &font));
+			RETURN_IF_FAILED(font->GetFontFamily(&font_family));
+			RETURN_IF_FAILED(font_family->GetFamilyNames(&family_names));
+			
+			m_name = factory::get_font_name(family_names.get());
+			m_weight = font->GetWeight();
+			m_style = font->GetStyle();
+			m_stretch = font->GetStretch();
+			return S_OK;
+		}();
+
+	if FAILED(hr)
+	{
+		m_weight = static_cast<DWRITE_FONT_WEIGHT>(lf.lfWeight);
+		
+		if (lf.lfItalic != 0)
+		{
+			m_style = DWRITE_FONT_STYLE_ITALIC;
+		}
+	}
+
+	if (lf.lfHeight == 0)
+	{
+		m_size = 12.f;
+	}
+	else
+	{
+		m_size = js::to_float(std::abs(lf.lfHeight));
+	}
+}
+
 HRESULT Font::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const FormatParams& params) const
 {
 	wil::com_ptr_t<IDWriteInlineObject> trimmingSign;
@@ -82,4 +121,15 @@ HRESULT Font::create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, cons
 	RETURN_IF_FAILED(factory::dwrite->CreateEllipsisTrimmingSign(text_format.get(), &trimmingSign));
 	RETURN_IF_FAILED(text_format->SetTrimming(&params.m_trimming, trimmingSign.get()));
 	return S_OK;
+}
+
+std::string Font::to_string() const
+{
+	auto j = JSON::object();
+	j["Name"] = js::from_wide(m_name);
+	j["Size"] = m_size;
+	j["Weight"] = std::to_underlying(m_weight);
+	j["Style"] = std::to_underlying(m_style);
+	j["Stretch"] = std::to_underlying(m_stretch);
+	return j.dump(4);
 }
