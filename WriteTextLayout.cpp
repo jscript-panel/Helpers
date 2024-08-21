@@ -91,11 +91,11 @@ HRESULT WriteTextLayout::create3(wil::com_ptr_t<IDWriteTextLayout3>& text_layout
 
 HRESULT WriteTextLayout::set_colours(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, const ColourRanges& colour_ranges)
 {
-	for (auto&& colour_range : colour_ranges)
+	for (auto&& [colour, range] : colour_ranges)
 	{
 		wil::com_ptr_t<ID2D1SolidColorBrush> brush;
-		RETURN_IF_FAILED(context->CreateSolidColorBrush(colour_range.colour, &brush));
-		RETURN_IF_FAILED(text_layout->SetDrawingEffect(brush.get(), colour_range.range));
+		RETURN_IF_FAILED(context->CreateSolidColorBrush(colour, &brush));
+		RETURN_IF_FAILED(text_layout->SetDrawingEffect(brush.get(), range));
 	}
 
 	return S_OK;
@@ -118,15 +118,15 @@ HRESULT WriteTextLayout::set_colours_json(IDWriteTextLayout* text_layout, ID2D1D
 
 HRESULT WriteTextLayout::set_fonts(IDWriteTextLayout* text_layout, const FontRanges& font_ranges)
 {
-	for (auto&& font_range : font_ranges)
+	for (auto&& [font, range] : font_ranges)
 	{
-		RETURN_IF_FAILED(text_layout->SetFontFamilyName(font_range.font.m_name.data(), font_range.range));
-		RETURN_IF_FAILED(text_layout->SetFontSize(font_range.font.m_size, font_range.range));
-		RETURN_IF_FAILED(text_layout->SetFontWeight(font_range.font.m_weight, font_range.range));
-		RETURN_IF_FAILED(text_layout->SetFontStyle(font_range.font.m_style, font_range.range));
-		RETURN_IF_FAILED(text_layout->SetFontStretch(font_range.font.m_stretch, font_range.range));
-		RETURN_IF_FAILED(text_layout->SetStrikethrough(font_range.font.m_strikethrough, font_range.range));
-		RETURN_IF_FAILED(text_layout->SetUnderline(font_range.font.m_underline, font_range.range));
+		RETURN_IF_FAILED(text_layout->SetFontFamilyName(font.m_name.data(), range));
+		RETURN_IF_FAILED(text_layout->SetFontSize(font.m_size, range));
+		RETURN_IF_FAILED(text_layout->SetFontWeight(font.m_weight, range));
+		RETURN_IF_FAILED(text_layout->SetFontStyle(font.m_style, range));
+		RETURN_IF_FAILED(text_layout->SetFontStretch(font.m_stretch, range));
+		RETURN_IF_FAILED(text_layout->SetStrikethrough(font.m_strikethrough, range));
+		RETURN_IF_FAILED(text_layout->SetUnderline(font.m_underline, range));
 	}
 
 	return S_OK;
@@ -176,18 +176,16 @@ HRESULT WriteTextLayout::to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool veri
 
 float WriteTextLayout::calc_text_width(std::wstring_view text, const Font& font)
 {
+	const auto fonts = parse_tf_fonts(text);
 	wil::com_ptr_t<IDWriteTextLayout> text_layout;
 
-	if SUCCEEDED(create(text_layout, font, FormatParams(), text, FLT_MAX, FLT_MAX))
-	{
-		const auto fonts = parse_tf_fonts(text);
-		if SUCCEEDED(set_fonts(text_layout.get(), fonts))
-		{
-			DWRITE_TEXT_METRICS metrics{};
-			text_layout->GetMetrics(&metrics);
-			return metrics.widthIncludingTrailingWhitespace;
-		}
-	}
+	if FAILED(create(text_layout, font, FormatParams(), text, FLT_MAX, FLT_MAX))
+		return 0.f;
 
-	return 0.f;
+	if FAILED(set_fonts(text_layout.get(), fonts))
+		return 0.f;
+
+	DWRITE_TEXT_METRICS metrics{};
+	text_layout->GetMetrics(&metrics);
+	return metrics.widthIncludingTrailingWhitespace;
 }
