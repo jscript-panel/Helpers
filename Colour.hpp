@@ -53,10 +53,9 @@ namespace js
 
 	static D2D1_COLOR_F to_colorf(std::wstring_view hex)
 	{
-		const int r = hex_digit_to_int(hex.at(4)) << 4 | hex_digit_to_int(hex.at(5));
+		const int r = hex_digit_to_int(hex.at(0)) << 4 | hex_digit_to_int(hex.at(1));
 		const int g = hex_digit_to_int(hex.at(2)) << 4 | hex_digit_to_int(hex.at(3));
-		const int b = hex_digit_to_int(hex.at(0)) << 4 | hex_digit_to_int(hex.at(1));
-		const auto colour = to_argb(RGB(r, g, b));
-		return to_colorf(colour);
+		const int b = hex_digit_to_int(hex.at(4)) << 4 | hex_digit_to_int(hex.at(5));
+		return D2D1::ColorF(RGB(r, g, b));
 	}
 }
