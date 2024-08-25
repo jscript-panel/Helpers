@@ -3,6 +3,8 @@
 class Gradient
 {
 public:
+	using Ptr = std::unique_ptr<Gradient>;
+
 	HRESULT DrawEllipse(ID2D1DeviceContext* context, const D2D1_ELLIPSE& ellipse, float line_width, std::wstring_view str);
 	HRESULT DrawLine(ID2D1DeviceContext* context, const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, std::wstring_view str);
 	HRESULT DrawRectangle(ID2D1DeviceContext* context, const D2D1_RECT_F& rect, float line_width, std::wstring_view str);
@@ -10,7 +12,7 @@ public:
 	HRESULT FillEllipse(ID2D1DeviceContext* context, const D2D1_ELLIPSE& ellipse, std::wstring_view str);
 	HRESULT FillRectangle(ID2D1DeviceContext* context, const D2D1_RECT_F& rect, std::wstring_view str);
 	HRESULT FillRoundedRectangle(ID2D1DeviceContext* context, const D2D1_ROUNDED_RECT& rounded_rect, std::wstring_view str);
-	void Reset();
+	void ResetResources();
 
 private:
 	static HRESULT CheckTwoNumberArray(JSON& j);

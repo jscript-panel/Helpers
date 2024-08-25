@@ -272,7 +272,7 @@ HRESULT Gradient::FillRoundedRectangle(ID2D1DeviceContext* context, const D2D1_R
 	return E_INVALIDARG;
 }
 
-void Gradient::Reset()
+void Gradient::ResetResources()
 {
 	m_linear_stop_string.clear();
 	m_radial_stop_string.clear();
