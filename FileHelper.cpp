@@ -31,6 +31,7 @@ uint32_t FileHelper::guess_codepage(std::string_view content)
 	int encoding_count = max_encodings;
 	int size = js::to_int(content.length());
 	std::array<DetectEncodingInfo, max_encodings> encodings{};
+
 	if FAILED(lang->DetectInputCodepage(MLDETECTCP_NONE, 0, src, &size, encodings.data(), &encoding_count))
 		return 0;
 

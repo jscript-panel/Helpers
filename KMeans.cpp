@@ -96,7 +96,8 @@ namespace KMeans
 			for (auto&& cluster : m_clusters)
 			{
 				const size_t cluster_total_points = cluster.get_total_points();
-				if (cluster_total_points == 0) continue;
+				if (cluster_total_points == 0)
+					continue;
 
 				for (auto&& [index, value] : std::views::enumerate(cluster.m_central_values))
 				{

@@ -82,7 +82,7 @@ Font::Font(const LOGFONT& lf)
 			RETURN_IF_FAILED(factory::gdi_interop->CreateFontFromLOGFONT(&lf, &font));
 			RETURN_IF_FAILED(font->GetFontFamily(&font_family));
 			RETURN_IF_FAILED(font_family->GetFamilyNames(&family_names));
-			
+
 			m_name = factory::get_font_name(family_names.get());
 			m_weight = font->GetWeight();
 			m_style = font->GetStyle();
@@ -93,7 +93,7 @@ Font::Font(const LOGFONT& lf)
 	if FAILED(hr)
 	{
 		m_weight = static_cast<DWRITE_FONT_WEIGHT>(lf.lfWeight);
-		
+
 		if (lf.lfItalic != 0)
 		{
 			m_style = DWRITE_FONT_STYLE_ITALIC;

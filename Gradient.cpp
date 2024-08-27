@@ -63,6 +63,7 @@ HRESULT Gradient::CreateLinearBrush(ID2D1DeviceContext* context, JSON& obj, floa
 	{
 		auto& jstops = obj["Stops"];
 		const auto stop_string = jstops.dump();
+
 		if (!m_linear_brush || stop_string != m_linear_stop_string)
 		{
 			D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES properties{};
@@ -92,6 +93,7 @@ HRESULT Gradient::CreateRadialBrush(ID2D1DeviceContext* context, JSON& obj, floa
 	{
 		auto& jstops = obj["Stops"];
 		const auto stop_string = jstops.dump();
+
 		if (!m_radial_brush || stop_string != m_radial_stop_string)
 		{
 			D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES properties{};

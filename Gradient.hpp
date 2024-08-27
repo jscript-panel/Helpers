@@ -3,8 +3,6 @@
 class Gradient
 {
 public:
-	using Ptr = std::unique_ptr<Gradient>;
-
 	HRESULT DrawEllipse(ID2D1DeviceContext* context, const D2D1_ELLIPSE& ellipse, float line_width, std::wstring_view str);
 	HRESULT DrawLine(ID2D1DeviceContext* context, const D2D1_POINT_2F& p1, const D2D1_POINT_2F& p2, float line_width, std::wstring_view str);
 	HRESULT DrawRectangle(ID2D1DeviceContext* context, const D2D1_RECT_F& rect, float line_width, std::wstring_view str);
