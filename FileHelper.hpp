@@ -8,6 +8,7 @@ public:
 
 	static bool rename(std::wstring_view from, std::wstring_view to);
 
+	HRESULT read(wil::com_ptr_t<IStream>& stream);
 	WStrings list_files(bool recur = false);
 	WStrings list_folders(bool recur = false);
 	bool copy_file(std::wstring_view to, bool overwrite);
@@ -18,13 +19,8 @@ public:
 	bool remove();
 	bool remove_folder_recursive(uint32_t options);
 	bool write(const void* data, size_t size);
-	bool write(std::string_view content);
-	bool write(std::wstring_view content);
-	std::string read();
-	uint32_t guess_codepage();
 	uint64_t file_size();
 	uint64_t last_modified();
-	void read_wide(uint32_t codepage, std::wstring& content);
 
 private:
 	enum class EntryType
@@ -33,13 +29,8 @@ private:
 		Folder,
 	};
 
-	static uint32_t guess_codepage(std::string_view content);
-
 	template <typename DirectoryIterator = std::filesystem::directory_iterator>
 	WStrings list_t(EntryType type);
-
-	static constexpr std::string_view UTF_16_LE_BOM = "\xFF\xFE";
-	static constexpr std::string_view UTF_8_BOM = "\xEF\xBB\xBF";
 
 	std::filesystem::path m_path;
 };

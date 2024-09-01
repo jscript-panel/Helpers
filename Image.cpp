@@ -97,16 +97,9 @@ namespace js
 
 	HRESULT libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
 	{
-		auto data = AlbumArtStatic::istream_to_data(stream);
+		auto data = AlbumArtStatic::to_data(stream);
 		RETURN_HR_IF_EXPECTED(E_FAIL, data.is_empty());
 		RETURN_IF_FAILED(libwebp_data_to_bitmap(static_cast<const uint8_t*>(data->data()), data->size(), bitmap));
-		return S_OK;
-	}
-
-	HRESULT path_to_istream(std::wstring_view path, wil::com_ptr_t<IStream>& stream)
-	{
-		RETURN_IF_FAILED(SHCreateStreamOnFileEx(path.data(), STGM_READ | STGM_SHARE_DENY_WRITE, GENERIC_READ, FALSE, nullptr, &stream));
-		RETURN_IF_FAILED(check_stream_size(stream.get()));
 		return S_OK;
 	}
 
@@ -133,7 +126,7 @@ namespace js
 		wil::com_ptr_t<IStream> stream;
 		wil::com_ptr_t<IWICBitmap> bitmap;
 
-		if FAILED(path_to_istream(path, stream))
+		if FAILED(FileHelper(path).read(stream))
 			return nullptr;
 
 		HRESULT hr = istream_to_bitmap(stream.get(), bitmap);
@@ -159,7 +152,7 @@ namespace js
 		}
 		else
 		{
-			xml = FileHelper(path_or_xml).read();
+			xml = TextFile(path_or_xml).read();
 			if (xml.empty())
 				return nullptr;
 		}
