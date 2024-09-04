@@ -44,9 +44,7 @@ namespace js
 	static D2D1_COLOR_F to_colorf(VARIANT colour)
 	{
 		if FAILED(VariantChangeType(&colour, &colour, 0, VT_I8))
-		{
 			return factory::White;
-		}
 
 		return to_colorf(colour.llVal);
 	}

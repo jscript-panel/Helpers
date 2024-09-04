@@ -68,34 +68,42 @@ WStrings FileHelper::list_t(EntryType type)
 
 bool FileHelper::copy_file(std::wstring_view to, bool overwrite)
 {
-	if (is_file())
-	{
-		fs::copy_options options{};
-		if (overwrite) options |= fs::copy_options::overwrite_existing;
+	if (!is_file())
+		return false;
+	
+	fs::copy_options options{};
 
-		const auto fs_to = fs::path(to.data());
-		std::error_code ec;
-		return fs::copy_file(m_path, fs_to, options, ec);
+	if (overwrite)
+	{
+		options |= fs::copy_options::overwrite_existing;
 	}
 
-	return false;
+	const auto fs_to = fs::path(to.data());
+	std::error_code ec;
+	return fs::copy_file(m_path, fs_to, options, ec);
 }
 
 bool FileHelper::copy_folder(std::wstring_view to, bool overwrite, bool recur)
 {
-	if (is_folder())
-	{
-		fs::copy_options options{};
-		if (overwrite) options |= fs::copy_options::overwrite_existing;
-		if (recur) options |= fs::copy_options::recursive;
+	if (!is_folder())
+		return false;
 
-		const auto fs_to = fs::path(to.data());
-		std::error_code ec;
-		fs::copy(m_path, fs_to, options, ec);
-		return ec.value() == 0;
+	fs::copy_options options{};
+
+	if (overwrite)
+	{
+		options |= fs::copy_options::overwrite_existing;
+	}
+	
+	if (recur)
+	{
+		options |= fs::copy_options::recursive;
 	}
 
-	return false;
+	const auto fs_to = fs::path(to.data());
+	std::error_code ec;
+	fs::copy(m_path, fs_to, options, ec);
+	return ec.value() == 0;
 }
 
 bool FileHelper::create_folder()
@@ -127,48 +135,38 @@ bool FileHelper::remove()
 
 bool FileHelper::remove_folder_recursive(uint32_t options)
 {
-	if (is_folder())
-	{
-		const auto options_enum = static_cast<wil::RemoveDirectoryOptions>(options);
-		return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.c_str(), options_enum));
-	}
-	return false;
+	if (!is_folder())
+		return false;
+
+	const auto options_enum = static_cast<wil::RemoveDirectoryOptions>(options);
+	return SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(m_path.c_str(), options_enum));
 }
 
 bool FileHelper::write(const void* data, size_t size)
 {
 	auto f = std::ofstream(m_path, std::ios::binary);
-
-	if (f.is_open())
-	{
-		return f.write((char*)data, size).good();
-	}
-
-	return false;
+	if (!f.is_open())
+		return false;
+	
+	return f.write((char*)data, size).good();
 }
 
 uint64_t FileHelper::file_size()
 {
 	std::error_code ec;
-	uint64_t ret{};
+	if (!fs::is_regular_file(m_path, ec))
+		return {};
 
-	if (fs::is_regular_file(m_path, ec))
-	{
-		ret = fs::file_size(m_path, ec);
-	}
-	return ret;
+	return fs::file_size(m_path, ec);
 }
 
 uint64_t FileHelper::last_modified()
 {
 	std::error_code ec;
-	uint64_t ret{};
-
 	const auto last = fs::last_write_time(m_path, ec);
-	if (ec.value() == 0)
-	{
-		const auto windows_time = static_cast<uint64_t>(last.time_since_epoch().count());
-		ret = pfc::fileTimeWtoU(windows_time);
-	}
-	return ret;
+	if (ec.value() != 0)
+		return {};
+	
+	const auto windows_time = static_cast<uint64_t>(last.time_since_epoch().count());
+	return pfc::fileTimeWtoU(windows_time);
 }

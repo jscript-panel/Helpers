@@ -64,9 +64,8 @@ std::string TextFile::read()
 
 	const std::string str = fmt::format("{}", fmt::join(strings, CRLF.data()));
 	if (str.starts_with(UTF_8_BOM))
-	{
 		return str.substr(3);
-	}
+
 	return str;
 }
 

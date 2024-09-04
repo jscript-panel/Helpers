@@ -78,21 +78,20 @@ namespace js
 	HRESULT libwebp_data_to_bitmap(const uint8_t* data, size_t data_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 	{
 		WebPBitstreamFeatures bs;
-		if (WebPGetFeatures(data, data_size, &bs) == VP8_STATUS_OK && !bs.has_animation)
-		{
-			auto webp = WebPDecodeBGRA(data, data_size, &bs.width, &bs.height);
-			if (webp)
-			{
-				const auto width = to_uint(bs.width);
-				const auto height = to_uint(bs.height);
-				const auto stride = width * 4U;
-				const auto size = stride * height;
-				const HRESULT hr = factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, stride, size, webp, &bitmap);
-				WebPFree(webp);
-				return hr;
-			}
-		}
-		return E_FAIL;
+		if (WebPGetFeatures(data, data_size, &bs) != VP8_STATUS_OK || bs.has_animation)
+			return E_FAIL;
+
+		auto webp = WebPDecodeBGRA(data, data_size, &bs.width, &bs.height);
+		if (!webp)
+			return E_FAIL;
+
+		const auto width = to_uint(bs.width);
+		const auto height = to_uint(bs.height);
+		const auto stride = width * 4U;
+		const auto size = stride * height;
+		const HRESULT hr = factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, stride, size, webp, &bitmap);
+		WebPFree(webp);
+		return hr;
 	}
 
 	HRESULT libwebp_istream_to_bitmap(IStream* stream, wil::com_ptr_t<IWICBitmap>& bitmap)
@@ -202,9 +201,7 @@ namespace js
 			tree = nullptr;
 
 			if SUCCEEDED(factory::imaging->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPRGBA, stride, size, data.data(), &bitmap))
-			{
 				return new ComObject<JSImage>(bitmap);
-			}
 		}
 #endif
 		return nullptr;
@@ -213,11 +210,8 @@ namespace js
 	bool save_as_jpg(IWICBitmap* bitmap, std::wstring_view path)
 	{
 		album_art_data_ptr data;
-
 		if FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data))
-		{
 			return false;
-		}
 
 		return FileHelper(path).write(data->get_ptr(), data->get_size());
 	}

@@ -7,18 +7,15 @@ public:
 	{
 		metadb_handle_ptr handle;
 		if (playback_control::get()->get_now_playing(handle))
-		{
 			return handle->get_path();
-		}
+
 		return {};
 	}
 
 	static std::string replace_illegal_chars(std::string_view str, bool modern)
 	{
 		if (modern)
-		{
 			return pfc::io::path::replaceIllegalNameChars(str.data(), false, pfc::io::path::charReplaceModern).get_ptr();
-		}
 
 		return pfc::io::path::replaceIllegalNameChars(str.data()).get_ptr();
 	}

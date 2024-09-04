@@ -29,9 +29,7 @@ std::string CountryFlag::get(std::string_view country_or_code)
 		const auto it = flag_data.find(lowered.get_ptr());
 
 		if (it != flag_data.end())
-		{
 			return it->second.flag;
-		}
 	}
 	else if (country_or_code.length() >= 4)
 	{
@@ -41,9 +39,7 @@ std::string CountryFlag::get(std::string_view country_or_code)
 			});
 
 		if (it != flag_data.end())
-		{
 			return it->second.flag;
-		}
 	}
 
 	return {};
