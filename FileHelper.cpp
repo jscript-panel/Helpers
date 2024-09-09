@@ -70,7 +70,7 @@ bool FileHelper::copy_file(std::wstring_view to, bool overwrite)
 {
 	if (!is_file())
 		return false;
-	
+
 	fs::copy_options options{};
 
 	if (overwrite)
@@ -94,7 +94,7 @@ bool FileHelper::copy_folder(std::wstring_view to, bool overwrite, bool recur)
 	{
 		options |= fs::copy_options::overwrite_existing;
 	}
-	
+
 	if (recur)
 	{
 		options |= fs::copy_options::recursive;
@@ -147,7 +147,7 @@ bool FileHelper::write(const void* data, size_t size)
 	auto f = std::ofstream(m_path, std::ios::binary);
 	if (!f.is_open())
 		return false;
-	
+
 	return f.write((char*)data, size).good();
 }
 
@@ -166,7 +166,7 @@ uint64_t FileHelper::last_modified()
 	const auto last = fs::last_write_time(m_path, ec);
 	if (ec.value() != 0)
 		return {};
-	
+
 	const auto windows_time = static_cast<uint64_t>(last.time_since_epoch().count());
 	return pfc::fileTimeWtoU(windows_time);
 }
