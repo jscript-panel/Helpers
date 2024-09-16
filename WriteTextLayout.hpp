@@ -27,9 +27,9 @@ public:
 	static HRESULT set_colours_json(IDWriteTextLayout* text_layout, ID2D1DeviceContext* context, JSON& jcolours);
 	static HRESULT set_fonts(IDWriteTextLayout* text_layout, const FontRanges& font_ranges);
 	static HRESULT set_fonts_json(IDWriteTextLayout* text_layout, JSON& jfonts);
-	static HRESULT set_line_spacing(IDWriteTextLayout3* text_layout);
 	static float calc_text_width(std::wstring_view text, const Font& font);
 
 private:
+	static HRESULT set_line_spacing(IDWriteTextLayout3* text_layout);
 	static HRESULT to_range(JSON& obj, DWRITE_TEXT_RANGE& range, bool verify_colour = false);
 };

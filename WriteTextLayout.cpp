@@ -88,6 +88,7 @@ HRESULT WriteTextLayout::create3(wil::com_ptr_t<IDWriteTextLayout3>& text_layout
 
 	RETURN_IF_FAILED(create(temp_layout, font, params, text, FLT_MAX, FLT_MAX));
 	RETURN_HR_IF(E_FAIL, !temp_layout.try_query_to(IID_PPV_ARGS(&text_layout)));
+	RETURN_IF_FAILED(set_line_spacing(text_layout.get()));
 	return S_OK;
 }
 
