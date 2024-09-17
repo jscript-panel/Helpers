@@ -4,17 +4,17 @@
 WriteTextLayout::ColourRanges WriteTextLayout::parse_tf_colours(std::wstring_view text)
 {
 	ColourRanges colour_ranges;
-	const auto clean = js::remove_mark(text.data(), 7);
+	const auto clean = js::remove_mark(text, BEL);
 	auto start = js::to_uint(clean.find(ETX));
 
 	if (start != std::wstring_view::npos)
 	{
-		const auto parts = js::split_string(clean, ETX);
+		const auto view = js::split_string(clean, ETX) | std::views::drop(1) | std::views::chunk(2);
 
-		for (size_t i = 1; i < parts.size(); i += 2)
+		for (auto&& parts : view)
 		{
-			const auto& colour_part = parts[i];
-			const auto& text_part = parts[i + 1];
+			const auto& colour_part = parts[0];
+			const auto& text_part = parts[1];
 			if (text_part.empty())
 				continue;
 
@@ -37,17 +37,17 @@ WriteTextLayout::ColourRanges WriteTextLayout::parse_tf_colours(std::wstring_vie
 WriteTextLayout::FontRanges WriteTextLayout::parse_tf_fonts(std::wstring_view text)
 {
 	FontRanges font_ranges;
-	const auto clean = js::remove_mark(text.data(), 3);
+	const auto clean = js::remove_mark(text, ETX);
 	auto start = js::to_uint(clean.find(BEL));
 
 	if (start != std::wstring_view::npos)
 	{
-		const auto parts = js::split_string(clean, BEL);
+		const auto view = js::split_string(clean, BEL) | std::views::drop(1) | std::views::chunk(2);
 
-		for (size_t i = 1; i < parts.size(); i += 2)
+		for (auto&& parts : view)
 		{
-			const auto& font_part = parts[i];
-			const auto& text_part = parts[i + 1];
+			const auto& font_part = parts[0];
+			const auto& text_part = parts[1];
 			if (text_part.empty())
 				continue;
 
