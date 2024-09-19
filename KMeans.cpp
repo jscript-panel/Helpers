@@ -112,7 +112,8 @@ namespace KMeans
 				}
 			}
 
-			if (done) break;
+			if (done)
+				break;
 		}
 
 		std::ranges::sort(m_clusters, [](const Cluster& a, const Cluster& b)

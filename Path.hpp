@@ -26,7 +26,9 @@ public:
 
 		for (const char c : str | std::views::reverse)
 		{
-			if (c != '.') break;
+			if (c != '.')
+				break;
+
 			len--;
 		}
 
