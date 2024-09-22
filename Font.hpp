@@ -9,23 +9,6 @@ struct Font
 	Font(std::wstring_view str);
 	Font(const LOGFONT& lf);
 
-	static BOOL get_BOOL(JSON& obj)
-	{
-		return obj.get<bool>() ? TRUE : FALSE;
-	}
-
-	template <typename T>
-	static T get(JSON& obj)
-	{
-		return static_cast<T>(obj.get<uint32_t>());
-	}
-
-	template <typename T>
-	static T get(std::wstring_view str)
-	{
-		return static_cast<T>(std::stoul(str.data()));
-	}
-
 	HRESULT create_format(wil::com_ptr_t<IDWriteTextFormat>& text_format, const FormatParams& params) const;
 	std::string to_string() const;
 

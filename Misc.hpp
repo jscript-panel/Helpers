@@ -1,6 +1,5 @@
 #pragma once
 
-using JSON = nlohmann::json;
 using VariantArgs = std::vector<_variant_t>;
 
 namespace js

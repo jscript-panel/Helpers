@@ -22,37 +22,37 @@ Font::Font(JSON& obj)
 	auto& size = obj["Size"];
 	if (size.is_number())
 	{
-		m_size = get<float>(size);
+		m_size = size.get<float>();
 	}
 
 	auto& weight = obj["Weight"];
 	if (weight.is_number_unsigned())
 	{
-		m_weight = get<DWRITE_FONT_WEIGHT>(weight);
+		m_weight = js::to_enum<DWRITE_FONT_WEIGHT>(weight);
 	}
 
 	auto& style = obj["Style"];
 	if (style.is_number_unsigned())
 	{
-		m_style = get<DWRITE_FONT_STYLE>(style);
+		m_style = js::to_enum<DWRITE_FONT_STYLE>(style);
 	}
 
 	auto& stretch = obj["Stretch"];
 	if (stretch.is_number_unsigned())
 	{
-		m_stretch = get<DWRITE_FONT_STRETCH>(stretch);
+		m_stretch = js::to_enum<DWRITE_FONT_STRETCH>(stretch);
 	}
 
 	auto& strikethrough = obj["Strikethrough"];
 	if (strikethrough.is_boolean())
 	{
-		m_strikethrough = get_BOOL(strikethrough);
+		m_strikethrough = js::to_BOOL(strikethrough);
 	}
 
 	auto& underline = obj["Underline"];
 	if (underline.is_boolean())
 	{
-		m_underline = get_BOOL(underline);
+		m_underline = js::to_BOOL(underline);
 	}
 }
 
@@ -63,9 +63,9 @@ Font::Font(std::wstring_view str)
 		return;
 
 	m_name = parts[0];
-	m_size = get<float>(parts[1]);
-	m_weight = get<DWRITE_FONT_WEIGHT>(parts[2]);
-	m_style = get<DWRITE_FONT_STYLE>(parts[3]);
+	m_size = std::stof(parts[1]);
+	m_weight = js::to_enum<DWRITE_FONT_WEIGHT>(parts[2]);
+	m_style = js::to_enum<DWRITE_FONT_STYLE>(parts[3]);
 
 	if (parts[4] == L"1") m_underline = TRUE;
 	if (parts[5] == L"1") m_strikethrough = TRUE;

@@ -1,9 +1,31 @@
 #pragma once
 
+using JSON = nlohmann::json;
+
 namespace js
 {
 	template <typename T>
 	concept IsNum = std::integral<T> || std::floating_point<T>;
+
+	template <typename T>
+	concept IsEnum = std::is_enum_v<T>;
+
+	template <typename T>
+	static T to_enum(JSON& obj) requires IsEnum<T>
+	{
+		return static_cast<T>(obj.get<uint32_t>());
+	}
+
+	template <typename T>
+	static T to_enum(std::wstring_view str) requires IsEnum<T>
+	{
+		return static_cast<T>(std::stoul(str.data()));
+	}
+
+	static BOOL to_BOOL(JSON& obj)
+	{
+		return obj.get<bool>() ? TRUE : FALSE;
+	}
 
 	static HWND to_wnd(uintptr_t window_id)
 	{
