@@ -57,6 +57,14 @@ namespace js
 		return static_cast<intptr_t>(num);
 	}
 
+	static std::optional<int> to_int(std::string_view str)
+	{
+		if (pfc::string_is_numeric(str.data()))
+			return std::stoi(str.data());
+
+		return std::nullopt;
+	}
+
 	static uint32_t to_uint(IsNum auto num)
 	{
 		return static_cast<uint32_t>(num);
