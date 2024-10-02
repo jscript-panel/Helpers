@@ -1,5 +1,13 @@
 #pragma once
 
+struct CmpW
+{
+	bool operator()(const std::wstring& lhs, const std::wstring& rhs) const
+	{
+		return StrCmpLogicalW(lhs.data(), rhs.data()) < 0;
+	}
+};
+
 using WStrings = std::vector<std::wstring>;
 
 static constexpr std::wstring_view TAB = L"\t";
