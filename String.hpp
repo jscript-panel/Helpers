@@ -5,6 +5,7 @@ concept StringView = std::same_as<T, std::string_view> || std::same_as<T, std::w
 
 using StringMap = std::map<std::string, std::string>;
 using StringPair = std::pair<std::string, std::string>;
+using StringPairs = std::vector<StringPair>;
 using Strings = std::vector<std::string>;
 using pfc::string8;
 
