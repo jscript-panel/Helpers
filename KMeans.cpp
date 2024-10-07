@@ -141,7 +141,7 @@ namespace KMeans
 		KPoints points;
 		for (auto&& [index, value] : std::views::enumerate(colour_counters))
 		{
-			points.emplace_back(KPoint(index, value.first, value.second));
+			points.emplace_back(index, value.first, value.second);
 		}
 
 		auto kmeans = KMeans(points, count);
