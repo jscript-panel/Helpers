@@ -26,17 +26,17 @@ namespace js
 		return _wcsicmp(a.data(), b.data()) == 0;
 	}
 
-	// based on SDK/titleformat/remove_color_marks
 	static std::wstring remove_mark(std::wstring_view str, std::wstring_view mark)
 	{
 		if (!str.contains(mark))
-			return { str.data(), str.size() };
+			return std::wstring(str);
 
 		auto src = str.data();
 		const auto ch = mark.at(0);
 
 		std::wstring ret;
 
+		// taken from SDK/titleformat/remove_color_marks
 		while (*src)
 		{
 			if (*src == ch)
