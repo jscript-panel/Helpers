@@ -11,6 +11,7 @@ uint32_t TextFile::guess_codepage(std::string_view content)
 		return 0;
 
 	auto lang = wil::CoCreateInstance<IMultiLanguage2>(CLSID_CMultiLanguage);
+
 	if (!lang)
 		return 0;
 
@@ -24,6 +25,7 @@ uint32_t TextFile::guess_codepage(std::string_view content)
 		return 0;
 
 	const uint32_t codepage = encodings[0].nCodePage;
+
 	if (codepage == 20127)
 		return CP_UTF8;
 
@@ -52,17 +54,20 @@ bool TextFile::write(std::wstring_view content)
 std::string TextFile::read()
 {
 	auto f = std::ifstream(m_path);
+
 	if (!f.is_open())
 		return {};
 
 	Strings strings;
 	std::string line;
+
 	while (std::getline(f, line))
 	{
 		strings.emplace_back(line);
 	}
 
 	const std::string str = fmt::format("{}", fmt::join(strings, CRLF.data()));
+
 	if (str.starts_with(UTF_8_BOM))
 		return str.substr(3);
 
@@ -77,18 +82,22 @@ uint32_t TextFile::guess_codepage()
 void TextFile::read_wide(uint32_t codepage, std::wstring& content)
 {
 	const auto result = wil::try_open_file(m_path.c_str());
+
 	if (result.last_error != 0)
 		return;
 
 	const auto file_size = GetFileSize(result.file.get(), nullptr);
+
 	if (file_size == INVALID_FILE_SIZE)
 		return;
 
 	const auto file_mapping = wil::unique_handle(CreateFileMappingW(result.file.get(), nullptr, PAGE_READONLY, 0, 0, nullptr));
+
 	if (!file_mapping)
 		return;
 
 	const auto ptr = wil::unique_mapview_ptr<uint8_t>(static_cast<uint8_t*>(MapViewOfFile(file_mapping.get(), FILE_MAP_READ, 0, 0, 0)));
+
 	if (!ptr)
 		return;
 

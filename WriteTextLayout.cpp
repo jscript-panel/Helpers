@@ -15,6 +15,7 @@ WriteTextLayout::ColourRanges WriteTextLayout::parse_tf_colours(std::wstring_vie
 		{
 			const auto& colour_part = parts[0];
 			const auto& text_part = parts[1];
+
 			if (text_part.empty())
 				continue;
 
@@ -48,6 +49,7 @@ WriteTextLayout::FontRanges WriteTextLayout::parse_tf_fonts(std::wstring_view te
 		{
 			const auto& font_part = parts[0];
 			const auto& text_part = parts[1];
+
 			if (text_part.empty())
 				continue;
 

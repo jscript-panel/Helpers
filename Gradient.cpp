@@ -17,6 +17,7 @@ JSON Gradient::Parse(std::wstring_view str)
 	if (j.is_object())
 	{
 		auto& jstops = j["Stops"];
+
 		if (jstops.is_array() && jstops.size() >= 2)
 			return j;
 	}

@@ -109,6 +109,7 @@ bool FileHelper::copy_folder(std::wstring_view to, bool overwrite, bool recur)
 bool FileHelper::create_folder()
 {
 	std::error_code ec;
+
 	if (fs::is_directory(m_path, ec))
 		return true;
 
@@ -145,6 +146,7 @@ bool FileHelper::remove_folder_recursive(uint32_t options)
 bool FileHelper::write(const void* data, size_t size)
 {
 	auto f = std::ofstream(m_path, std::ios::binary);
+
 	if (!f.is_open())
 		return false;
 
@@ -154,6 +156,7 @@ bool FileHelper::write(const void* data, size_t size)
 uint64_t FileHelper::file_size()
 {
 	std::error_code ec;
+
 	if (!fs::is_regular_file(m_path, ec))
 		return {};
 
@@ -164,6 +167,7 @@ uint64_t FileHelper::last_modified()
 {
 	std::error_code ec;
 	const auto last = fs::last_write_time(m_path, ec);
+
 	if (ec.value() != 0)
 		return {};
 

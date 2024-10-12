@@ -197,7 +197,12 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 				dst_ptr += 4;
 
 				stack_start = sp + div - radius;
-				if (stack_start >= div) stack_start -= div;
+
+				if (stack_start >= div)
+				{
+					stack_start -= div;
+				}
+
 				stack_ptr = &stack[4 * stack_start];
 
 				if (xp < wm)
@@ -211,11 +216,14 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 				memcpy(stack_ptr, src_ptr, 4);
 				sum_in.Add(src_ptr);
 				sum += sum_in;
-
 				++sp;
-				if (sp >= div) sp = 0;
-				stack_ptr = &stack[sp * 4];
 
+				if (sp >= div)
+				{
+					sp = 0;
+				}
+
+				stack_ptr = &stack[sp * 4];
 				sum_out.Add(stack_ptr);
 				sum_in -= stack_ptr;
 			}
@@ -244,7 +252,11 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 
 			for (uint8_t i = 1; i <= radius; ++i)
 			{
-				if (i <= hm) src_ptr += w4;
+				if (i <= hm)
+				{
+					src_ptr += w4;
+				}
+
 				stack_ptr = &stack[4 * (i + radius)];
 				memcpy(stack_ptr, src_ptr, 4);
 				sum.Add(src_ptr, radius + 1 - i);
@@ -262,7 +274,12 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 				dst_ptr += w4;
 
 				stack_start = sp + div - radius;
-				if (stack_start >= div) stack_start -= div;
+
+				if (stack_start >= div)
+				{
+					stack_start -= div;
+				}
+
 				stack_ptr = &stack[4 * stack_start];
 
 				if (yp < hm)
@@ -276,11 +293,14 @@ void StackBlur::StackBlurThread(uint32_t step, uint32_t core, uint8_t* src, uint
 				memcpy(stack_ptr, src_ptr, 4);
 				sum_in.Add(src_ptr);
 				sum += sum_in;
-
 				++sp;
-				if (sp >= div) sp = 0;
-				stack_ptr = &stack[sp * 4];
 
+				if (sp >= div)
+				{
+					sp = 0;
+				}
+
+				stack_ptr = &stack[sp * 4];
 				sum_out.Add(stack_ptr);
 				sum_in -= stack_ptr;
 			}

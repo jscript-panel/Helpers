@@ -14,6 +14,7 @@ namespace CustomSort
 	static bool sort_compare(const Item& a, const Item& b)
 	{
 		const int ret = direction * StrCmpLogicalW(a.text.data(), b.text.data());
+
 		if (ret == 0)
 			return a.index < b.index;
 

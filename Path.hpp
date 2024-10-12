@@ -6,6 +6,7 @@ public:
 	static std::string now_playing()
 	{
 		metadb_handle_ptr handle;
+
 		if (playback_control::get()->get_now_playing(handle))
 			return handle->get_path();
 

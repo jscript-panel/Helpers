@@ -46,6 +46,7 @@ namespace js
 
 		D2D1_SIZE_U size{};
 		RETURN_IF_FAILED(bitmap->GetSize(&size.width, &size.height));
+
 		if (size.width <= max_size && size.height <= max_size)
 			return S_OK;
 
@@ -78,10 +79,12 @@ namespace js
 	HRESULT libwebp_data_to_bitmap(const uint8_t* data, size_t data_size, wil::com_ptr_t<IWICBitmap>& bitmap)
 	{
 		WebPBitstreamFeatures bs;
+
 		if (WebPGetFeatures(data, data_size, &bs) != VP8_STATUS_OK || bs.has_animation)
 			return E_FAIL;
 
 		auto webp = WebPDecodeBGRA(data, data_size, &bs.width, &bs.height);
+
 		if (!webp)
 			return E_FAIL;
 
@@ -114,6 +117,7 @@ namespace js
 	IJSImage* create_image(uint32_t width, uint32_t height)
 	{
 		wil::com_ptr_t<IWICBitmap> bitmap;
+
 		if FAILED(factory::imaging->CreateBitmap(width, height, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnDemand, &bitmap))
 			return nullptr;
 
@@ -129,6 +133,7 @@ namespace js
 			return nullptr;
 
 		HRESULT hr = istream_to_bitmap(stream.get(), bitmap);
+
 		if FAILED(hr)
 			hr = libwebp_istream_to_bitmap(stream.get(), bitmap);
 
@@ -145,6 +150,7 @@ namespace js
 	{
 #if ENABLE_RESVG
 		std::string xml;
+
 		if (path_or_xml.contains(L'<'))
 		{
 			xml = from_wide(path_or_xml);
@@ -152,6 +158,7 @@ namespace js
 		else
 		{
 			xml = TextFile(path_or_xml).read();
+
 			if (xml.empty())
 				return nullptr;
 		}
@@ -210,6 +217,7 @@ namespace js
 	bool save_as_jpg(IWICBitmap* bitmap, std::wstring_view path)
 	{
 		album_art_data_ptr data;
+
 		if FAILED(AlbumArtStatic::bitmap_to_jpg_data(bitmap, data))
 			return false;
 
@@ -219,6 +227,7 @@ namespace js
 	uint32_t get_stream_size(IStream* stream)
 	{
 		STATSTG stats{};
+
 		if FAILED(stream->Stat(&stats, STATFLAG_DEFAULT))
 			return UINT_MAX;
 

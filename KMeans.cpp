@@ -96,6 +96,7 @@ namespace KMeans
 			for (auto&& cluster : m_clusters)
 			{
 				const size_t cluster_total_points = cluster.get_total_points();
+
 				if (cluster_total_points == 0)
 					continue;
 
@@ -135,10 +136,11 @@ namespace KMeans
 	Colours GetColours(IWICBitmap* bitmap, size_t count)
 	{
 		ColourCounters colour_counters;
+		KPoints points;
+
 		if FAILED(GetColourCounters(bitmap, colour_counters))
 			return Colours();
 
-		KPoints points;
 		for (auto&& [index, value] : std::views::enumerate(colour_counters))
 		{
 			points.emplace_back(index, value.first, value.second);
@@ -174,6 +176,7 @@ namespace KMeans
 		for (const int i : std::views::iota(0, colours_length))
 		{
 			ColourValues values{};
+
 			std::ranges::transform(kShifts, values.begin(), [colour = colours[i]](const int shift)
 				{
 					const uint8_t value = (colour >> shift) & UINT8_MAX;
@@ -182,6 +185,7 @@ namespace KMeans
 
 			++colour_counters[values];
 		}
+
 		return S_OK;
 	}
 }
